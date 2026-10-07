@@ -607,7 +607,7 @@
             <div class="pl-value" id="plRevenue" style="color:var(--pl-revenue);">฿0</div>
           </div>
           <div class="pl-stat">
-            <div class="pl-label">ต้นทุน</div>
+            <div class="pl-label" id="plCostLabel">ยอดขาย/ส่งหลอม</div>
             <div class="pl-value" id="plCost" style="color:var(--pl-cost);">฿0</div>
           </div>
           <div class="pl-stat">
@@ -620,7 +620,7 @@
             <label id="plCostInputLabel">ต้นทุนของวันที่เลือก</label>
             <input type="text" inputmode="decimal" id="plCostInput" placeholder="0.00">
           </div>
-          <button class="btn btn-sm btn-primary" onclick="saveDailyCost()">บันทึกต้นทุน</button>
+          <button class="btn btn-sm btn-primary" onclick="saveDailyCost()" id="saveCostBtn">บันทึก</button>
         </div>
       </div>
 
@@ -863,6 +863,18 @@
             <input type="file" accept="application/json" id="restoreFileInput">
           </label>
         </div>
+      </div>
+
+      <div class="panel" data-panel-id="labels">
+        <h3>ปรับคำที่แสดงในระบบ</h3>
+        <p class="hint">เปลี่ยนคำศัพท์ที่แสดงในหน้าภาพรวม/รายงาน ได้เองโดยไม่ต้องแก้โค้ด เช่น ถ้าร้านไม่ได้เรียกยอดส่วนนี้ว่า "ต้นทุน" จะเปลี่ยนเป็นคำอื่นก็ได้</p>
+        <div class="form-grid">
+          <div class="field">
+            <label>ชื่อเรียกยอด "ต้นทุน" ในหน้าภาพรวม/รายงาน</label>
+            <input type="text" id="labelCostInput" placeholder="เช่น ยอดขาย/ส่งหลอม">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="saveLabelsFromForm()">บันทึกคำที่ใช้</button>
       </div>
 
       <div class="panel" data-panel-id="watchlist">
@@ -1155,6 +1167,7 @@ const LS_SETTINGS_COLLAPSED = 'nanon_settings_collapsed_v1';
 const LS_COSTS = 'nanon_daily_costs_v1';
 const LS_DEVICE_ID = 'nanon_device_id_v1';
 const LS_DEVICE_NAME = 'nanon_device_name_v1';
+const LS_LABELS = 'nanon_labels_v1';
 
 /**
  * ป้องกันการใช้งานโดยไม่ได้รับอนุญาต: ถ้าคุณ (ผู้ขาย) จะขายไฟล์นี้เป็นสินค้า ให้ใส่ URL ของ
@@ -1182,6 +1195,23 @@ const DEFAULT_WEIGHT_UNITS = ['กรัม','บาท','กะรัต','ส�
 const DEFAULT_FONT = {color:'#f2e9d8', size:100};
 const DEFAULT_BRAND = {name:'ณ.นนท์', sub:'รับซื้อตั๋วจำนำ · หลอมทอง', logo:''};
 const DEFAULT_THEME = {bgColor:'', bgImage:''};
+/* ---------- คำที่แสดงในระบบ ปรับได้เองในหน้าตั้งค่า (data-panel-id="labels") โดยไม่ต้องแก้โค้ด
+   ตอนนี้มีคำเดียวคือ "ต้นทุน" (ค่าเริ่มต้นเปลี่ยนเป็น "ยอดขาย/ส่งหลอม" ตามที่ร้านใช้จริง) เพิ่มคำอื่น
+   ในอนาคตได้ด้วยการเติม key ใหม่ที่นี่ + ใช้ LABELS.xxx แทนข้อความตายตัวตรงที่จะแสดง ---------- */
+const DEFAULT_LABELS = {cost: 'ยอดขาย/ส่งหลอม'};
+let LABELS = Object.assign({}, DEFAULT_LABELS, loadJSON(LS_LABELS, {}));
+function saveLabels(){ saveJSON(LS_LABELS, LABELS); applyLabels(); }
+function applyLabels(){
+  const costLabelEl = document.getElementById('plCostLabel');
+  if(costLabelEl) costLabelEl.textContent = LABELS.cost;
+}
+function saveLabelsFromForm(){
+  const v = document.getElementById('labelCostInput').value.trim();
+  LABELS.cost = v || DEFAULT_LABELS.cost;
+  saveLabels();
+  toast('บันทึกคำที่ใช้แล้ว');
+  if(document.getElementById('view-overview').classList.contains('active')) renderOverview();
+}
 const VIP_THRESHOLD = 2; // more than 2 visits (i.e. the 3rd visit onward) earns the star
 const FALLBACK_COLOR = '#8a8072';
 
@@ -1193,6 +1223,7 @@ function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
    When you add a new field later: add its default here, add it to HEADERS in apps-script.gs
    (at the END of the array, never remove/reorder old ones), and old rows keep working. */
 function normalizeRecord(rec){
+  if(rec.date) rec.date = toPlainDateStr(rec.date); // กันข้อมูลเก่าที่อาจติดสตริง ISO เต็มรูปแบบมาจากบั๊กเดิม
   if(rec.seq===undefined) rec.seq = 0;
   if(rec.paymentMethod===undefined) rec.paymentMethod = 'เงินสด';
   if(rec.photos===undefined) rec.photos = [];
@@ -1405,19 +1436,40 @@ window.addEventListener('unhandledrejection', function(e){
 
 /* ---------- Toast ---------- */
 let toastTimer;
-function toast(msg){
+function toast(msg, durationMs){
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.display='block';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=> t.style.display='none', 2600);
+  toastTimer = setTimeout(()=> t.style.display='none', durationMs || 2600);
 }
 
 function fmtMoney(n){ return '฿' + Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:2}); }
+/* ---------- วันที่: บั๊กเก่า — ถ้าค่าที่ได้มา (เช่นจาก Google Sheet) ดันเป็นสตริง ISO เต็มรูปแบบ
+   ("2026-10-07T17:00:00.000Z") แทนที่จะเป็น "YYYY-MM-DD" ธรรมดา ฟังก์ชันนี้จะดึงแค่ส่วนวันที่ออกมาเสมอ
+   แก้ไว้ทั้งสองทาง: ที่ต้นตอ (apps-script.gs doGet) และดักซ้ำที่นี่เผื่อข้อมูลเก่าที่ค้างอยู่ก่อนแก้บั๊ก ---------- */
+function toPlainDateStr(d){
+  if(!d) return '';
+  const s = String(d);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : s;
+}
+/* รูปแบบวันที่ที่แสดงผล: D/M/Y (เช่น 7/10/2026) ตามที่ขอ */
 function fmtDate(d){
+  d = toPlainDateStr(d);
   if(!d) return '—';
   const dt = new Date(d+'T00:00:00');
   if(isNaN(dt)) return d;
-  return dt.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'numeric'});
+  return `${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
+}
+/* วันที่ + เวลา: D/M/Y ตามด้วยตัว "T" สั้นๆ แล้วเวลา HH:MM — ใช้กับ timestamp เช่น ประวัติการแก้ไข, เวลาพิมพ์ */
+function fmtDateTime(ts){
+  if(!ts) return '—';
+  const dt = new Date(ts);
+  if(isNaN(dt)) return String(ts);
+  const datePart = `${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
+  const hh = String(dt.getHours()).padStart(2,'0');
+  const mm = String(dt.getMinutes()).padStart(2,'0');
+  return `${datePart}T${hh}:${mm}`;
 }
 
 /* ---------- Formatted price input (comma + decimal) ---------- */
@@ -1753,7 +1805,7 @@ function renderPLSummary(){
   const editWrap = document.getElementById('plCostEditWrap');
   if(plPeriod==='day'){
     editWrap.style.display = 'flex';
-    document.getElementById('plCostInputLabel').textContent = 'ต้นทุนของวันที่ ' + fmtDate(from);
+    document.getElementById('plCostInputLabel').textContent = LABELS.cost + 'ของวันที่ ' + fmtDate(from);
     document.getElementById('plCostInput').value = DAILY_COSTS[from]!==undefined ? formatPriceDisplay(String(DAILY_COSTS[from])) : '';
   } else {
     editWrap.style.display = 'none';
@@ -1766,7 +1818,45 @@ function saveDailyCost(){
   saveDailyCosts();
   renderPLSummary();
   renderCalendarGrid();
-  toast('บันทึกต้นทุนแล้ว');
+  toast('บันทึก' + LABELS.cost + 'แล้ว');
+  pushCostToSheet(from, val);
+}
+/* ---------- ซิงก์ "ต้นทุน/ยอดขาย-ส่งหลอม" รายวันข้ามเครื่อง ----------
+   เดิมค่านี้ (DAILY_COSTS) เก็บไว้แค่ใน localStorage ของเครื่องที่กรอกเท่านั้น จึงไม่มีทางเห็น
+   เหมือนกันระหว่างเครื่อง ตอนนี้ส่งขึ้นไปที่ Google Sheet ชีต "daily_costs" (1 แถวต่อ 1 วัน แบบ upsert
+   เหมือนรายการซื้อขาย) แล้วทุกเครื่องดึงค่านี้กลับมาพร้อมกับ pullFromSheet ทุก 45 วิเช่นเดียวกัน
+   ต้อง deploy apps-script.gs เวอร์ชันล่าสุด (มี action "saveCost"/"costs") ก่อน ไม่งั้นจะ fetch ไม่พบ
+   action นี้แล้วเงียบไปเฉยๆ (จับ error ไว้แล้ว ไม่ทำให้แอปพัง) ---------- */
+async function pushCostToSheet(date, amount){
+  const url = loadJSONsheetUrl();
+  if(!url) return;
+  try{
+    await fetch(url, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: sheetPostBody({action:'saveCost', date, amount, updatedBy:getDeviceName()||getDeviceId()})
+    });
+  }catch(e){ console.warn('ซิงก์ต้นทุนไม่สำเร็จ', e); }
+}
+async function pullCostsFromSheet(silent){
+  const url = loadJSONsheetUrl();
+  if(!url) return;
+  try{
+    const costUrl = url + (url.includes('?') ? '&' : '?') + 'action=costs' + (loadSecret() ? ('&key=' + encodeURIComponent(loadSecret())) : '');
+    const res = await fetch(costUrl, {method:'GET'});
+    const rows = await res.json();
+    if(!Array.isArray(rows)) return;
+    let changed = false;
+    rows.forEach(row=>{
+      const d = toPlainDateStr(row.date);
+      if(!d) return;
+      const amt = Number(row.amount)||0;
+      if(DAILY_COSTS[d] !== amt){ DAILY_COSTS[d] = amt; changed = true; }
+    });
+    if(changed){
+      saveDailyCosts();
+      if(document.getElementById('view-overview').classList.contains('active')){ renderCalendarGrid(); renderPLSummary(); }
+    }
+  }catch(e){ if(!silent) console.warn('ดึงต้นทุนไม่สำเร็จ', e); }
 }
 document.getElementById('plPeriodOpts').addEventListener('click', function(e){
   const opt = e.target.closest('.opt'); if(!opt) return;
@@ -2067,7 +2157,7 @@ function openEditModal(id){
   if(!rec) return;
   editingId = id;
   document.getElementById('editSeqLabel').textContent = rec.seq ? ('#'+String(rec.seq).padStart(4,'0')) : '';
-  document.getElementById('edit_date').value = rec.date || '';
+  document.getElementById('edit_date').value = toPlainDateStr(rec.date);
   const branchSel = document.getElementById('edit_branch');
   branchSel.innerHTML = BRANCHES.map(b=>`<option>${b}</option>`).join('');
   if(!BRANCHES.includes(rec.branch) && rec.branch) branchSel.innerHTML += `<option>${rec.branch}</option>`;
@@ -2113,7 +2203,7 @@ function renderEditHistory(rec){
   wrap.innerHTML = `<p class="hint" style="margin-top:14px; margin-bottom:0;">ประวัติการแก้ไข (${rec.editHistory.length} ครั้ง)</p>` +
     [...rec.editHistory].reverse().map(h=>`
       <div class="history-entry">
-        <b>${new Date(h.ts).toLocaleString('th-TH')}</b> โดย ${h.editedBy||'ไม่ระบุ'} — เหตุผล: ${h.reason||'-'}<br>
+        <b>${fmtDateTime(h.ts)}</b> โดย ${h.editedBy||'ไม่ระบุ'} — เหตุผล: ${h.reason||'-'}<br>
         ${h.changes.map(c=>`<span style="color:var(--muted-2);">${c.field}:</span> "${c.oldValue}" → "${c.newValue}"`).join('<br>')}
       </div>`).join('');
 }
@@ -2244,7 +2334,7 @@ function exportXLSX(){
 
   const costDates = Object.keys(DAILY_COSTS).filter(d=>DAILY_COSTS[d]).sort();
   if(costDates.length){
-    const plAoa = [['วันที่','ยอดรับซื้อ','ต้นทุน','กำไรสุทธิ']];
+    const plAoa = [['วันที่','ยอดรับซื้อ', LABELS.cost,'กำไรสุทธิ']];
     costDates.forEach(d=>{
       const rev = TX.filter(t=>t.date===d).reduce((s,t)=>s+Number(t.price||0),0);
       const cost = Number(DAILY_COSTS[d])||0;
@@ -2275,7 +2365,7 @@ function printReportHeader(title, subtitle){
     <div class="print-meta">
       <div><b>${title}</b></div>
       <div>${subtitle}</div>
-      <div>พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</div>
+      <div>พิมพ์เมื่อ ${fmtDateTime(Date.now())}</div>
     </div>
   </div>`;
 }
@@ -2306,15 +2396,22 @@ function printReport(scope){
       </table>`;
   } else if(scope==='overview'){
     const {from, to, label} = getPLPeriodRange(plPeriod);
-    const revenue = TX.filter(t=>t.date>=from && t.date<=to).reduce((s,t)=>s+Number(t.price||0),0);
+    const rangeRows = TX.filter(t=>t.date>=from && t.date<=to);
+    const revenue = rangeRows.reduce((s,t)=>s+Number(t.price||0),0);
     const cost = sumCostsInRange(from, to);
     const net = revenue - cost;
     const netLabel = net < 0 ? ('ขาดทุน ' + fmtMoney(Math.abs(net))) : fmtMoney(net);
+    // ใส่รายการจริงในช่วงนั้นเข้าไปด้วย (ไม่ใช่แค่ยอดสรุป) เพื่อให้พนักงานเอาใบพิมพ์นี้ไปใช้ตรวจงานจริงได้
+    const groups = groupTx(rangeRows).sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
     html = printReportHeader('รายงานกำไร-ขาดทุน', label) + `
       <table class="print-table print-table-compact">
         <tr><td>ยอดรับซื้อ</td><td><b>${fmtMoney(revenue)}</b></td></tr>
-        <tr><td>ต้นทุน</td><td><b>${fmtMoney(cost)}</b></td></tr>
+        <tr><td>${LABELS.cost}</td><td><b>${fmtMoney(cost)}</b></td></tr>
         <tr><td>กำไรสุทธิ</td><td><b>${netLabel}</b></td></tr>
+      </table>
+      <table class="print-table">
+        <thead><tr><th>ลำดับ</th><th>วันที่</th><th>สาขา</th><th>ลูกค้า</th><th>ประเภท</th><th>ยอดรวม</th><th>สถานะ</th></tr></thead>
+        <tbody>${groups.map(g=>`<tr><td>${g.items[0].seq?('#'+String(g.items[0].seq).padStart(4,'0')):''}</td><td>${fmtDate(g.date)}</td><td>${g.branch||'—'}</td><td>${g.customer||'—'}</td><td>${g.items.length>1?g.items.length+' ประเภท':(g.items[0].type||'—')}</td><td>${fmtMoney(g.totalPrice)}</td><td>${g.status||''}</td></tr>`).join('') || '<tr><td colspan="7">ไม่มีรายการในช่วงที่เลือก</td></tr>'}</tbody>
       </table>`;
   }
   area.innerHTML = html;
@@ -2337,6 +2434,7 @@ function renderSettings(){
   document.getElementById('sheetUrl').value = loadJSONsheetUrl();
   document.getElementById('secretKey').value = loadSecret();
   document.getElementById('branchList').value = BRANCHES.join('\n');
+  document.getElementById('labelCostInput').value = LABELS.cost;
   refreshSyncBadge();
   renderTypeCfg();
   renderStatusCfg();
@@ -2785,7 +2883,7 @@ function clearPin(){
 function exportBackupJSON(){
   const backup = {
     exportedAt: Date.now(), schemaVersion: SCHEMA_VERSION,
-    TX, BRANCHES, TYPES, STATUSES, WEIGHT_UNITS, FONT, BRAND, THEME, CUSTOMERS, WATCHLIST, DAILY_COSTS
+    TX, BRANCHES, TYPES, STATUSES, WEIGHT_UNITS, FONT, BRAND, THEME, CUSTOMERS, WATCHLIST, DAILY_COSTS, LABELS
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -2813,13 +2911,14 @@ document.getElementById('restoreFileInput').addEventListener('change', function(
       CUSTOMERS = data.CUSTOMERS || [];
       WATCHLIST = data.WATCHLIST || [];
       DAILY_COSTS = data.DAILY_COSTS || {};
+      LABELS = Object.assign({}, DEFAULT_LABELS, data.LABELS || {});
       saveTx(); saveJSON(LS_BRANCHES,BRANCHES); saveJSON(LS_TYPES,TYPES); saveJSON(LS_STATUSES,STATUSES);
       saveJSON(LS_WEIGHT_UNITS,WEIGHT_UNITS); saveJSON(LS_FONT,FONT); saveJSON(LS_BRAND,BRAND); saveJSON(LS_THEME,THEME);
-      saveCustomers(); saveJSON(LS_WATCHLIST,WATCHLIST); saveDailyCosts();
-      applyBrand(); applyFont(); applyTheme();
-      toast('กู้คืนข้อมูลสำเร็จ');
+      saveCustomers(); saveJSON(LS_WATCHLIST,WATCHLIST); saveDailyCosts(); saveJSON(LS_LABELS,LABELS);
+      applyBrand(); applyFont(); applyTheme(); applyLabels();
+      toast(`✓ กู้คืนข้อมูลสำเร็จ — นำเข้า ${TX.length} รายการจากไฟล์สำรองเรียบร้อยแล้ว`, 4200);
       goTo('dashboard');
-    }catch(err){ toast('ไฟล์สำรองไม่ถูกต้อง: ' + err.message); }
+    }catch(err){ toast('✗ กู้คืนไม่สำเร็จ — ไฟล์สำรองไม่ถูกต้อง: ' + err.message, 4200); }
     e.target.value='';
   };
   reader.readAsText(file);
@@ -2967,20 +3066,30 @@ async function testConnection(){
   }
 }
 /* ---------- Drive file naming: so photos in Google Drive are recognizable at a glance
-   instead of all looking like "photo_<timestamp>.jpg" — format: ลำดับ_วันที่_สาขา_ลูกค้า_ประเภท_น้ำหนัก ---------- */
+   instead of all looking like "photo_<timestamp>.jpg" — รูปแบบ:
+   #ลำดับ-วัน-เดือน-ปี-สาขา-ชื่อ-ประเภท-น้ำหนัก หน่วยน้ำหนัก (ประเภทรูป)
+   เช่น #0001-07-10-2026-หน้าร้าน-ปลุวัชร-ทองคำ เศษทอง-30.4 กรัม (สลิป).jpg
+   หมายเหตุ: คงเว้นวรรคไว้ภายในแต่ละส่วน (ชื่อประเภทสินค้า/น้ำหนัก+หน่วย) เพื่อให้อ่านง่าย
+   ใช้ขีด "-" แบ่งระหว่างส่วนต่างๆ เท่านั้น ---------- */
 function sanitizeFileNamePart(s){
-  return String(s==null?'':s).trim().replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'-').slice(0,40);
+  return String(s==null?'':s).trim().replace(/[\\\/:*?"<>|]/g,'').slice(0,60);
+}
+function fileNameDateDMY(dateStr){
+  const d = toPlainDateStr(dateStr);
+  const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return sanitizeFileNamePart(d);
+  return `${m[3]}-${m[2]}-${m[1]}`; // วัน-เดือน-ปี
 }
 function buildPhotoBaseName(rec){
   const parts = [
     rec.seq ? ('#'+String(rec.seq).padStart(4,'0')) : '#0000',
-    rec.date || '',
+    fileNameDateDMY(rec.date),
     sanitizeFileNamePart(rec.branch),
     sanitizeFileNamePart(rec.customer),
     sanitizeFileNamePart(rec.type),
     sanitizeFileNamePart(rec.weight)
   ].filter(Boolean);
-  return parts.join('_') || ('photo_' + Date.now());
+  return parts.join('-') || ('photo_' + Date.now());
 }
 async function uploadPhotoArray(photos, existingUrls, url, baseFileName, kindLabel){
   if(existingUrls && existingUrls.length) return existingUrls;
@@ -2989,7 +3098,7 @@ async function uploadPhotoArray(photos, existingUrls, url, baseFileName, kindLab
   let i = 0;
   for(const dataUrl of photos){
     i++;
-    const fileName = baseFileName ? `${baseFileName}_${kindLabel||'รูป'}${photos.length>1?i:''}` : undefined;
+    const fileName = baseFileName ? `${baseFileName} (${kindLabel||'รูป'}${photos.length>1?i:''})` : undefined;
     try{
       const res = await fetch(url, {
         method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -3048,7 +3157,7 @@ function normalizeSheetRow(row){
     id: String(row.id||''),
     groupId: row.groupId ? String(row.groupId) : String(row.id||''),
     seq: Number(row.seq)||0,
-    date: row.date||'', branch: row.branch||'', type: row.type||'',
+    date: toPlainDateStr(row.date), branch: row.branch||'', type: row.type||'',
     details: row.details||'', weight: row.weight||'', price: Number(row.price)||0,
     paymentMethod: row.paymentMethod||'เงินสด',
     customer: row.customer||'', customerCode: row.customerCode||'',
@@ -3135,6 +3244,7 @@ function onEdit(e) {
 applyBrand();
 applyFont();
 applyTheme();
+applyLabels();
 prepAddForm();
 refreshSyncBadge();
 (function restoreLastView(){
@@ -3144,7 +3254,7 @@ refreshSyncBadge();
                     // now it re-opens whichever page was open before the refresh
 })();
 if(initLicenseGate()) initLock();
-if(loadJSONsheetUrl()) pullFromSheet(true);
+if(loadJSONsheetUrl()){ pullFromSheet(true); pullCostsFromSheet(true); }
 
 /* ---------- Cross-device sync: two phones adding data "at the same time" used to not see each
    other's photos until someone remembered to press a sync button. Now the app retries any record
@@ -3160,9 +3270,10 @@ setInterval(function(){
   if(typeof navigator!=='undefined' && navigator.onLine===false) return;
   retryUnsyncedPush();
   pullFromSheet(true);
+  pullCostsFromSheet(true);
 }, 45000);
 window.addEventListener('online', function(){
-  if(loadJSONsheetUrl()){ retryUnsyncedPush(); pullFromSheet(true); }
+  if(loadJSONsheetUrl()){ retryUnsyncedPush(); pullFromSheet(true); pullCostsFromSheet(true); }
 });
 
 /* ---------- Presence heartbeat: ส่งทุก 25 วิ (ถ้าเชื่อมชีตแล้วและตั้งชื่อเครื่องไว้แล้ว)
