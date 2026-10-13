@@ -320,6 +320,24 @@
   .bn-item.bn-main svg{color:#241a06; opacity:1;}
   .bn-item.bn-main{color:var(--gold-bright); font-weight:600;}
 
+  /* ---------- Bulk status bar (v6): เลือกหลายรายการแล้วเปลี่ยนสถานะทีเดียว ---------- */
+  .bulk-cb{width:18px; height:18px; accent-color:var(--gold); cursor:pointer; vertical-align:middle;}
+  th.cb-col, td.cb-col{width:34px; text-align:center; padding-left:8px !important; padding-right:4px !important;}
+  .bulk-bar{
+    display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:45;
+    background:var(--card); border:1px solid var(--gold); border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.55); padding:10px 12px;
+    align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;
+    max-width:calc(100vw - 24px);
+  }
+  .bulk-bar.show{display:flex;}
+  .bulk-bar .bulk-count{color:var(--gold-bright); font-size:13px; margin-right:4px; white-space:nowrap;}
+  .bulk-bar select{width:auto; padding:7px 8px; font-size:12.5px;}
+  @media (max-width:900px){
+    .bulk-bar{bottom:calc(84px + env(safe-area-inset-bottom,0px)); width:calc(100vw - 24px);}
+    .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px)); left:12px; right:12px; text-align:center;}
+  }
+
   /* ---------- Collapsible + draggable settings panels ---------- */
   .panel.collapsible .panel-head{
     display:flex; align-items:center; justify-content:space-between; cursor:pointer;
@@ -593,12 +611,20 @@
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <div class="swatch-row" id="plPeriodOpts">
               <div class="opt sel" data-period="day">รายวัน</div>
+              <div class="opt" data-period="7d">7 วันล่าสุด</div>
               <div class="opt" data-period="month">รายเดือน</div>
               <div class="opt" data-period="quarter">รายไตรมาส</div>
               <div class="opt" data-period="year">รายปี</div>
+              <div class="opt" data-period="custom">กำหนดเอง</div>
             </div>
             <button class="btn btn-sm" onclick="printReport('overview')">🖨 พิมพ์ / PDF</button>
           </div>
+        </div>
+        <div id="plCustomRange" style="display:none; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0;">
+          <input type="date" id="plRangeFrom" style="width:auto;">
+          <span style="color:var(--muted);">ถึง</span>
+          <input type="date" id="plRangeTo" style="width:auto;">
+          <button class="btn btn-sm btn-primary" type="button" onclick="applyPLCustomRange()">ดูข้อมูล</button>
         </div>
         <p class="hint" id="plPeriodLabel" style="margin-top:0;">—</p>
         <div class="pl-grid">
@@ -636,8 +662,8 @@
         <h3 id="calDayTitle">เลือกวันที่เพื่อดูรายการ</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ลำดับ</th><th>ประเภท</th><th>ลูกค้า</th><th>ราคา</th><th>สถานะ</th><th>รูป</th></tr></thead>
-            <tbody id="calDayBody"><tr><td colspan="6" class="empty">แตะวันที่ด้านบนเพื่อดูรายการ</td></tr></tbody>
+            <thead><tr><th class="cb-col"><input type="checkbox" class="bulk-cb" id="calSelectAll" title="เลือกทั้งหมดของวันนี้"></th><th>ลำดับ</th><th>ประเภท</th><th>ลูกค้า</th><th>ราคา</th><th>สถานะ</th><th>รูป</th></tr></thead>
+            <tbody id="calDayBody"><tr><td colspan="7" class="empty">แตะวันที่ด้านบนเพื่อดูรายการ</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -658,8 +684,16 @@
           <p class="hint" style="margin-bottom:14px;">ตรวจสอบกับรายชื่อเฝ้าระวังที่ร้านบันทึกไว้เอง (ไม่ใช่ฐานข้อมูลราชการ) ก่อนกรอกรายละเอียดสินค้า</p>
           <div class="form-grid">
             <div class="field">
-              <label>ชื่อลูกค้า <span class="req">*</span></label>
-              <input type="text" id="f_customer" placeholder="ชื่อ-นามสกุล" required>
+              <label>คำนำหน้า</label>
+              <select id="f_title"></select>
+            </div>
+            <div class="field">
+              <label>ชื่อ <span class="req">*</span></label>
+              <input type="text" id="f_firstName" placeholder="ชื่อ" required>
+            </div>
+            <div class="field">
+              <label>นามสกุล</label>
+              <input type="text" id="f_lastName" placeholder="นามสกุล">
             </div>
             <div class="field">
               <label>เบอร์โทร</label>
@@ -783,7 +817,7 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th>ลำดับ</th><th>วันที่</th><th>สาขา</th><th>ประเภท</th><th>รายละเอียด</th><th>น้ำหนัก</th>
+              <th class="cb-col"><input type="checkbox" class="bulk-cb" id="listSelectAll" title="เลือกทั้งหมดที่แสดงอยู่"></th><th>ลำดับ</th><th>วันที่</th><th>สาขา</th><th>ประเภท</th><th>รายละเอียด</th><th>น้ำหนัก</th>
               <th>ราคา</th><th>ชำระเงิน</th><th>ลูกค้า</th><th>เบอร์โทร</th><th>สถานะ</th><th>รูป</th><th>สลิป</th><th></th>
             </tr></thead>
             <tbody id="listBody"></tbody>
@@ -985,6 +1019,16 @@
         </div>
       </div>
 
+      <div class="panel" data-panel-id="titles">
+        <h3>คำนำหน้าชื่อลูกค้า</h3>
+        <p class="hint">ตัวเลือกที่จะขึ้นในช่อง "คำนำหน้า" ตอนเพิ่ม/แก้ไขรายการ — เพิ่มได้ตามต้องการ เช่น ดร., ร.ต.อ., พระ (ตัวเลือก "ไม่ระบุ" = ไม่ใส่คำนำหน้าในชื่อ)</p>
+        <div class="cfg-list" id="titleCfgList"></div>
+        <div class="cfg-add">
+          <input type="text" id="newTitleName" placeholder="เพิ่มคำนำหน้าใหม่ เช่น ดร.">
+          <button class="btn btn-sm btn-primary" onclick="addTitle()">+ เพิ่ม</button>
+        </div>
+      </div>
+
       <div class="panel" data-panel-id="weights">
         <h3>หน่วยน้ำหนัก</h3>
         <p class="hint">ตัวเลือกหน่วยที่จะขึ้นให้เลือกคู่กับช่อง "น้ำหนัก" ตอนเพิ่มรายการ</p>
@@ -1045,6 +1089,12 @@
   </main>
 </div>
 
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">เลือก 0 รายการ</span>
+  <span id="bulkQuickBtns" style="display:contents;"></span>
+  <select id="bulkOtherStatus" onchange="if(this.value){ bulkSetStatus(this.value); this.value=''; }"></select>
+  <button class="btn btn-sm" type="button" onclick="clearBulkSelection()">ยกเลิก</button>
+</div>
 <div class="toast" id="toast"></div>
 
 <div class="lock-overlay" id="licenseOverlay">
@@ -1090,7 +1140,9 @@
         </div>
       </div>
       <div class="field"><label>ราคารับซื้อ (บาท)</label><input type="text" inputmode="decimal" id="edit_price"></div>
-      <div class="field"><label>ชื่อลูกค้า</label><input type="text" id="edit_customer"></div>
+      <div class="field"><label>คำนำหน้า</label><select id="edit_title"></select></div>
+      <div class="field"><label>ชื่อลูกค้า</label><input type="text" id="edit_firstName"></div>
+      <div class="field"><label>นามสกุล</label><input type="text" id="edit_lastName"></div>
       <div class="field"><label>เบอร์โทร</label><input type="tel" id="edit_phone"></div>
       <div class="field"><label>สถานะ</label><select id="edit_status"></select></div>
       <div class="field"><label>ผู้บันทึก</label><input type="text" id="edit_staff"></div>
@@ -1168,6 +1220,7 @@ const LS_COSTS = 'nanon_daily_costs_v1';
 const LS_DEVICE_ID = 'nanon_device_id_v1';
 const LS_DEVICE_NAME = 'nanon_device_name_v1';
 const LS_LABELS = 'nanon_labels_v1';
+const LS_TITLES = 'nanon_titles_v1';
 
 /**
  * ป้องกันการใช้งานโดยไม่ได้รับอนุญาต: ถ้าคุณ (ผู้ขาย) จะขายไฟล์นี้เป็นสินค้า ให้ใส่ URL ของ
@@ -1189,9 +1242,11 @@ const DEFAULT_TYPES = [
 const DEFAULT_STATUSES = [
   {name:'รอตรวจสอบ', color:'#c08a2e'},
   {name:'รับซื้อแล้ว', color:'#4e8a5c'},
-  {name:'ขายต่อแล้ว', color:'#6f96c9'}
+  {name:'ขายแล้ว', color:'#6f96c9'},
+  {name:'หลอมแล้ว', color:'#b07fd0'}
 ];
 const DEFAULT_WEIGHT_UNITS = ['กรัม','บาท','กะรัต','สลึง','ชั่ง','ไม่ระบุ'];
+const DEFAULT_TITLES = ['นาย','นาง','นางสาว','ไม่ระบุ'];
 const DEFAULT_FONT = {color:'#f2e9d8', size:100};
 const DEFAULT_BRAND = {name:'ณ.นนท์', sub:'รับซื้อตั๋วจำนำ · หลอมทอง', logo:''};
 const DEFAULT_THEME = {bgColor:'', bgImage:''};
@@ -1222,8 +1277,44 @@ function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 /* Backfills any field a future version might expect, so old records never crash new code.
    When you add a new field later: add its default here, add it to HEADERS in apps-script.gs
    (at the END of the array, never remove/reorder old ones), and old rows keep working. */
+/* ---------- ชื่อลูกค้า (v6): แยกเป็น คำนำหน้า / ชื่อ / นามสกุล แต่ยังเก็บชื่อเต็มไว้ในฟิลด์ customer เหมือนเดิม
+   เพื่อไม่ให้กระทบของเดิม (ค้นหา, รายชื่อเฝ้าระวัง, ทะเบียนลูกค้า, คอลัมน์ customer ในชีต) ---------- */
+function buildFullName(title, first, last){
+  title = (title||'').trim(); first = (first||'').trim(); last = (last||'').trim();
+  const t = (title && title!=='ไม่ระบุ') ? title : '';
+  return [t, first, last].filter(Boolean).join(' ');
+}
+function splitCustomerName(full){
+  full = String(full||'').trim();
+  if(!full) return {title:'', first:'', last:''};
+  const titles = (TITLES || DEFAULT_TITLES).filter(t=>t && t!=='ไม่ระบุ')
+    .slice().sort((a,b)=>b.length-a.length); // "นางสาว" ต้องถูกเช็คก่อน "นาง"
+  let title = '', rest = full;
+  for(const t of titles){
+    if(rest.startsWith(t)){ title = t; rest = rest.slice(t.length).trim(); break; }
+  }
+  const parts = rest.split(/\s+/).filter(Boolean);
+  return {title, first: parts[0]||'', last: parts.slice(1).join(' ')};
+}
+/* เบอร์โทร (v6): Google Sheets เคยแปลงเบอร์เป็นตัวเลขจนเลข 0 ข้างหน้าหาย (0646322991 → 646322991)
+   ฟังก์ชันนี้เติม 0 กลับให้ถ้าเป็นตัวเลขล้วน 8–9 หลักที่ไม่ได้ขึ้นต้นด้วย 0 */
+function normalizePhone(v){
+  if(v===undefined || v===null) return '';
+  const raw = String(v).trim();
+  if(!raw) return '';
+  if(/^\d{8,9}$/.test(raw) && raw[0]!=='0') return '0' + raw;
+  return raw;
+}
 function normalizeRecord(rec){
   if(rec.date) rec.date = toPlainDateStr(rec.date); // กันข้อมูลเก่าที่อาจติดสตริง ISO เต็มรูปแบบมาจากบั๊กเดิม
+  rec.phone = normalizePhone(rec.phone);
+  if(rec.customerTitle===undefined && rec.customerFirstName===undefined){
+    const sp = splitCustomerName(rec.customer);
+    rec.customerTitle = sp.title; rec.customerFirstName = sp.first; rec.customerLastName = sp.last;
+  }
+  if(rec.customerTitle===undefined) rec.customerTitle = '';
+  if(rec.customerFirstName===undefined) rec.customerFirstName = '';
+  if(rec.customerLastName===undefined) rec.customerLastName = '';
   if(rec.seq===undefined) rec.seq = 0;
   if(rec.paymentMethod===undefined) rec.paymentMethod = 'เงินสด';
   if(rec.photos===undefined) rec.photos = [];
@@ -1243,6 +1334,8 @@ function normalizeRecord(rec){
 }
 function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
+// TITLES ต้องประกาศก่อน TX เพราะ normalizeRecord ใช้แยกคำนำหน้าออกจากชื่อเต็มของรายการเก่า
+let TITLES = loadJSON(LS_TITLES, DEFAULT_TITLES);
 let TX = loadJSON(LS_KEY, []).map(normalizeRecord);
 let BRANCHES = loadJSON(LS_BRANCHES, DEFAULT_BRANCHES);
 let TYPES = loadJSON(LS_TYPES, DEFAULT_TYPES);
@@ -1347,13 +1440,14 @@ function lockRestOfForm(){
   document.getElementById('watchClearBanner').style.display = 'none';
 }
 function runIdentityCheck(){
-  const name = document.getElementById('f_customer').value.trim();
+  const nameNoTitle = buildFullName('', document.getElementById('f_firstName').value, document.getElementById('f_lastName').value);
+  const name = buildFullName(document.getElementById('f_title').value, document.getElementById('f_firstName').value, document.getElementById('f_lastName').value);
   const phone = document.getElementById('f_phone').value.trim();
   const idcard = document.getElementById('f_idcard').value.trim();
   const consent = document.getElementById('f_consent').checked;
   const idHint = document.getElementById('idcardHint');
 
-  if(!name){ toast('กรุณากรอกชื่อลูกค้าก่อน'); return; }
+  if(!nameNoTitle){ toast('กรุณากรอกชื่อลูกค้าก่อน'); return; }
   if(!consent){ toast('กรุณาติ๊กช่องยินยอมให้เก็บข้อมูลก่อนตรวจสอบ'); return; }
   if(idcard && !isValidThaiId(idcard)){
     idHint.textContent = 'รูปแบบเลขบัตรประชาชนไม่ถูกต้อง (เช็คจำนวนหลัก/เลขตรวจสอบ) — ตรวจสอบเลขอีกครั้ง';
@@ -1363,7 +1457,7 @@ function runIdentityCheck(){
   idHint.textContent = idcard ? '✓ รูปแบบเลขบัตรถูกต้อง' : '';
   idHint.style.color = 'var(--green)';
 
-  const hit = findWatchlistHit(name, phone, idcard);
+  const hit = findWatchlistHit(name, phone, idcard) || findWatchlistHit(nameNoTitle, phone, idcard);
   const warnBanner = document.getElementById('watchlistWarning');
   const clearBanner = document.getElementById('watchClearBanner');
   const overrideBtn = document.getElementById('overrideBtn');
@@ -1410,6 +1504,7 @@ function tagStyle(color){
 const VALID_VIEWS = ['dashboard','overview','add','list','settings'];
 function goTo(view){
   if(!VALID_VIEWS.includes(view)) view = 'dashboard';
+  if(typeof clearBulkSelection==='function') clearBulkSelection(true);
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const el = document.getElementById('view-'+view);
   if(el) el.classList.add('active'); else document.getElementById('view-dashboard').classList.add('active');
@@ -1575,18 +1670,24 @@ function slipButtonHtml(t){
 
 /* ---------- Dashboard date range ---------- */
 let dashRange = {mode:'today', from:null, to:null};
-function isoToday(){ return new Date().toISOString().slice(0,10); }
+/* บั๊กเดิม: toISOString() ให้วันที่ตามเวลา UTC — เวลาไทย (UTC+7) ช่วง 00:00–06:59 จะได้ "เมื่อวาน"
+   และวันที่ 1 ของเดือนกลายเป็นวันสุดท้ายของเดือนก่อน ฟังก์ชันนี้ใช้วันที่ตามเวลาเครื่องจริงแทน */
+function localIso(d){
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function isoToday(){ return localIso(new Date()); }
 function computeRangeDates(){
   const today = isoToday();
   if(dashRange.mode==='today') return {from:today, to:today};
   if(dashRange.mode==='7d'){
     const d = new Date(); d.setDate(d.getDate()-6);
-    return {from:d.toISOString().slice(0,10), to:today};
+    return {from:localIso(d), to:today};
   }
   if(dashRange.mode==='month'){
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {from:d.toISOString().slice(0,10), to:today};
+    return {from:localIso(d), to:today};
   }
   if(dashRange.mode==='all') return {from:null, to:null};
   if(dashRange.mode==='custom') return {from:dashRange.from||today, to:dashRange.to||today};
@@ -1733,6 +1834,7 @@ function renderCalendarGrid(){
   document.getElementById('calGrid').innerHTML = html;
 }
 function calSelectDate(iso){
+  if(iso !== calSelectedDate) clearBulkSelection(); // เปลี่ยนวัน = ล้างรายการที่เลือกไว้ กันเปลี่ยนสถานะผิดวัน
   calSelectedDate = iso;
   renderCalendarGrid();
   const dayTx = TX.filter(t=>t.date===iso).sort((a,b)=>(a.seq||0)-(b.seq||0));
@@ -1741,6 +1843,7 @@ function calSelectDate(iso){
   body.innerHTML = dayTx.length ? dayTx.map(t=>{
     const tCfg = findType(t.type), sCfg = findStatus(t.status);
     return `<tr>
+      <td class="cb-col"><input type="checkbox" class="bulk-cb" data-ids="${escAttr(t.id)}" ${BULK_SELECTED.has(t.id)?'checked':''}></td>
       <td>${t.seq?('#'+String(t.seq).padStart(4,'0')):'—'}</td>
       <td><span class="tag" style="${tagStyle(tCfg&&tCfg.color)}">${t.type}</span></td>
       <td>${t.customer||'—'}${t.vip?' ⭐':''}</td>
@@ -1748,7 +1851,11 @@ function calSelectDate(iso){
       <td><span class="status"><span class="dot" style="background:${sCfg?sCfg.color:FALLBACK_COLOR}"></span>${t.status}</span></td>
       <td>${photoButtonHtml(t)}</td>
     </tr>`;
-  }).join('') : `<tr><td colspan="6" class="empty">ไม่มีรายการในวันนี้</td></tr>`;
+  }).join('') : `<tr><td colspan="7" class="empty">ไม่มีรายการในวันนี้</td></tr>`;
+  const allCb = document.getElementById('calSelectAll');
+  allCb.checked = dayTx.length>0 && dayTx.every(t=>BULK_SELECTED.has(t.id));
+  allCb.dataset.ids = dayTx.map(t=>t.id).join(',');
+  updateBulkBar();
   renderPLSummary();
 }
 function renderOverview(){
@@ -1757,8 +1864,15 @@ function renderOverview(){
   renderPLSummary();
 }
 
-/* ---------- Profit/loss summary: ยอดรับซื้อ (จาก TX) ลบด้วยต้นทุนที่กรอกเองรายวัน = กำไรสุทธิ
-   รายวัน/เดือน/ไตรมาส/ปี อิงจากวันที่เลือกในปฏิทิน (หรือวันนี้ถ้ายังไม่ได้เลือก) และเดือนที่ปฏิทินกำลังโชว์ ---------- */
+/* ---------- Profit/loss summary (v6 แก้สูตร):
+   กำไรสุทธิ = ยอดขาย/ส่งหลอม (กรอกเองรายวัน) − ยอดรับซื้อ (รวมจากรายการที่บันทึก)
+   เดิมสูตรสลับกัน (ยอดรับซื้อ − ยอดขาย) ทำให้วันที่ขายได้มากกลับขึ้นว่า "ขาดทุน"
+   ช่วงเวลา: รายวัน / 7 วันล่าสุด / รายเดือน / รายไตรมาส / รายปี / กำหนดเอง ---------- */
+function computePL(from, to){
+  const purchase = TX.filter(t=>t.date>=from && t.date<=to).reduce((s,t)=>s+Number(t.price||0),0);
+  const sales = sumCostsInRange(from, to);
+  return {purchase, sales, net: sales - purchase};
+}
 let DAILY_COSTS = loadJSON(LS_COSTS, {});
 function saveDailyCosts(){ saveJSON(LS_COSTS, DAILY_COSTS); }
 let plPeriod = 'day';
@@ -1767,19 +1881,37 @@ function getPLPeriodRange(period){
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
   if(period==='month'){
     const from = `${y}-${String(m+1).padStart(2,'0')}-01`;
-    const to = new Date(y,m+1,0).toISOString().slice(0,10);
+    const to = localIso(new Date(y,m+1,0));
     return {from, to, label: THAI_MONTHS[m] + ' ' + (y+543)};
   }
   if(period==='quarter'){
     const q = Math.floor(m/3), startM = q*3, endM = startM+2;
     const from = `${y}-${String(startM+1).padStart(2,'0')}-01`;
-    const to = new Date(y, endM+1, 0).toISOString().slice(0,10);
+    const to = localIso(new Date(y, endM+1, 0));
     return {from, to, label: `ไตรมาส ${q+1} ปี ${y+543}`};
   }
   if(period==='year'){
     return {from:`${y}-01-01`, to:`${y}-12-31`, label:'ปี ' + (y+543)};
   }
+  if(period==='7d'){
+    const d = new Date(); d.setDate(d.getDate()-6);
+    const from = localIso(d), to = isoToday();
+    return {from, to, label: '7 วันล่าสุด (' + fmtDate(from) + ' – ' + fmtDate(to) + ')'};
+  }
+  if(period==='custom'){
+    const from = plCustom.from || isoToday(), to = plCustom.to || isoToday();
+    return {from, to, label: 'กำหนดเอง: ' + rangeLabel(from, to)};
+  }
   return {from:baseDate, to:baseDate, label: fmtDate(baseDate)};
+}
+let plCustom = {from:null, to:null};
+function applyPLCustomRange(){
+  const from = document.getElementById('plRangeFrom').value;
+  const to = document.getElementById('plRangeTo').value;
+  if(!from || !to){ toast('กรุณาเลือกวันที่ให้ครบทั้งสองช่อง'); return; }
+  if(from > to){ toast('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด'); return; }
+  plCustom = {from, to};
+  renderPLSummary();
 }
 function sumCostsInRange(from, to){
   let sum = 0;
@@ -1789,11 +1921,10 @@ function sumCostsInRange(from, to){
 function renderPLSummary(){
   const {from, to, label} = getPLPeriodRange(plPeriod);
   document.getElementById('plPeriodLabel').textContent = label;
-  const revenue = TX.filter(t=>t.date>=from && t.date<=to).reduce((s,t)=>s+Number(t.price||0),0);
-  const cost = sumCostsInRange(from, to);
-  const net = revenue - cost;
-  document.getElementById('plRevenue').textContent = fmtMoney(revenue);
-  document.getElementById('plCost').textContent = fmtMoney(cost);
+  const {purchase, sales, net} = computePL(from, to);
+  document.getElementById('plRevenue').textContent = fmtMoney(purchase);
+  document.getElementById('plCost').textContent = fmtMoney(sales);
+  document.getElementById('plCustomRange').style.display = plPeriod==='custom' ? 'flex' : 'none';
   const netEl = document.getElementById('plNet');
   if(net < 0){
     netEl.textContent = 'ขาดทุน ' + fmtMoney(Math.abs(net));
@@ -1846,11 +1977,16 @@ async function pullCostsFromSheet(silent){
     const rows = await res.json();
     if(!Array.isArray(rows)) return;
     let changed = false;
+    // ถ้าวันเดียวกันมีหลายแถว (ซ้ำจากบั๊กเวอร์ชันก่อน) ให้ใช้แถวที่อัปเดตล่าสุด (updatedAt มากสุด)
+    const latest = {};
     rows.forEach(row=>{
       const d = toPlainDateStr(row.date);
       if(!d) return;
-      const amt = Number(row.amount)||0;
-      if(DAILY_COSTS[d] !== amt){ DAILY_COSTS[d] = amt; changed = true; }
+      const ts = Number(row.updatedAt)||0;
+      if(!latest[d] || ts >= latest[d].ts) latest[d] = {ts, amt: Number(row.amount)||0};
+    });
+    Object.keys(latest).forEach(d=>{
+      if(DAILY_COSTS[d] !== latest[d].amt){ DAILY_COSTS[d] = latest[d].amt; changed = true; }
     });
     if(changed){
       saveDailyCosts();
@@ -1862,6 +1998,11 @@ document.getElementById('plPeriodOpts').addEventListener('click', function(e){
   const opt = e.target.closest('.opt'); if(!opt) return;
   plPeriod = opt.dataset.period;
   document.querySelectorAll('#plPeriodOpts .opt').forEach(o=>o.classList.toggle('sel', o===opt));
+  if(plPeriod==='custom'){
+    const f = document.getElementById('plRangeFrom'), t = document.getElementById('plRangeTo');
+    if(!f.value) f.value = plCustom.from || isoToday();
+    if(!t.value) t.value = plCustom.to || isoToday();
+  }
   renderPLSummary();
 });
 document.getElementById('plCostInput').addEventListener('input', function(e){
@@ -1987,7 +2128,11 @@ function prepAddForm(){
   lockRestOfForm();
   const sel = document.getElementById('f_branch');
   sel.innerHTML = '<option value="">— เลือกสาขา —</option>' + BRANCHES.map(b=>`<option>${b}</option>`).join('');
-  document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f_date').value = isoToday();
+  const titleSel = document.getElementById('f_title');
+  const prevTitle = titleSel.value;
+  titleSel.innerHTML = TITLES.map(t=>`<option>${t}</option>`).join('');
+  if(prevTitle && TITLES.includes(prevTitle)) titleSel.value = prevTitle;
   const statusSel = document.getElementById('f_status');
   statusSel.innerHTML = STATUSES.map(s=>`<option>${s.name}</option>`).join('');
   if(STATUSES.some(s=>s.name==='รับซื้อแล้ว')) statusSel.value = 'รับซื้อแล้ว';
@@ -2010,7 +2155,10 @@ document.getElementById('addForm').addEventListener('submit', function(e){
   if(!step1Passed){ toast('กรุณาตรวจสอบเบื้องต้น (ขั้นที่ 1) ก่อนบันทึกรายการ'); return; }
   if(!lineItems.length || lineItems.some(li=>!li.type)){ toast('กรุณาเลือกประเภทสินค้าให้ครบทุกรายการ'); return; }
   if(lineItems.some(li=>!(parseFloat(digitsOnly(li.price))>0))){ toast('กรุณากรอกราคารับซื้อให้ครบทุกรายการ'); return; }
-  const customerName = document.getElementById('f_customer').value.trim();
+  const customerTitle = document.getElementById('f_title').value;
+  const customerFirstName = document.getElementById('f_firstName').value.trim();
+  const customerLastName = document.getElementById('f_lastName').value.trim();
+  const customerName = buildFullName(customerTitle, customerFirstName, customerLastName);
   const phone = document.getElementById('f_phone').value.trim();
   const idcard = document.getElementById('f_idcard').value.trim();
   const date = document.getElementById('f_date').value;
@@ -2035,6 +2183,7 @@ document.getElementById('addForm').addEventListener('submit', function(e){
       price: parseFloat(digitsOnly(li.price)) || 0,
       paymentMethod: selectedPayment,
       customer: customerName,
+      customerTitle: (customerTitle==='ไม่ระบุ' ? '' : customerTitle), customerFirstName, customerLastName,
       customerCode: cust.code,
       vip: cust.vip,
       phone, idcard,
@@ -2055,6 +2204,75 @@ document.getElementById('addForm').addEventListener('submit', function(e){
 });
 function loadJSONsheetUrl(){ return localStorage.getItem(LS_SHEET) || ''; }
 
+/* ---------- Bulk status change (v6) ----------
+   ติ๊กเลือกหลายรายการ (หน้าภาพรวม/หน้ารายการ) แล้วกดปุ่มลอย "ขายแล้ว" / "หลอมแล้ว" เปลี่ยนสถานะทีเดียว
+   ทุกการเปลี่ยนถูกบันทึกในประวัติการแก้ไขของแต่ละรายการ และส่งขึ้นชีตเหมือนการแก้ไขปกติ ---------- */
+const BULK_SELECTED = new Set();
+const BULK_QUICK_STATUSES = ['ขายแล้ว','หลอมแล้ว'];
+(function ensureQuickStatuses(){
+  // ผู้ใช้เดิมมีรายการสถานะเก็บไว้ในเครื่องแล้ว — เติม 2 สถานะนี้ให้ครั้งเดียว (ไม่ลบ/แก้ของเดิม)
+  const FLAG = 'nanon_status_quick_v6';
+  try{
+    if(localStorage.getItem(FLAG)) return;
+    let added = false;
+    if(!STATUSES.some(s=>s.name==='ขายแล้ว')){ STATUSES.push({name:'ขายแล้ว', color:'#6f96c9'}); added = true; }
+    if(!STATUSES.some(s=>s.name==='หลอมแล้ว')){ STATUSES.push({name:'หลอมแล้ว', color:'#b07fd0'}); added = true; }
+    if(added) saveJSON(LS_STATUSES, STATUSES);
+    localStorage.setItem(FLAG, '1');
+  }catch(e){}
+})();
+function updateBulkBar(){
+  const bar = document.getElementById('bulkBar');
+  const n = BULK_SELECTED.size;
+  bar.classList.toggle('show', n>0);
+  if(!n) return;
+  document.getElementById('bulkCount').textContent = `เลือก ${n} รายการ`;
+  const quick = BULK_QUICK_STATUSES.filter(q=>STATUSES.some(s=>s.name===q));
+  document.getElementById('bulkQuickBtns').innerHTML = quick.map(q=>
+    `<button class="btn btn-sm btn-primary" type="button" onclick="bulkSetStatus('${escAttr(q)}')">${q}</button>`).join('');
+  const others = STATUSES.map(s=>s.name).filter(n=>!quick.includes(n));
+  document.getElementById('bulkOtherStatus').innerHTML =
+    `<option value="">สถานะอื่น…</option>` + others.map(o=>`<option>${escAttr(o)}</option>`).join('');
+}
+function clearBulkSelection(silent){
+  BULK_SELECTED.clear();
+  document.querySelectorAll('.bulk-cb').forEach(cb=>cb.checked=false);
+  const bar = document.getElementById('bulkBar');
+  if(bar) bar.classList.remove('show');
+}
+document.addEventListener('change', function(e){
+  const cb = e.target;
+  if(!cb.classList || !cb.classList.contains('bulk-cb')) return;
+  const ids = (cb.dataset.ids||'').split(',').filter(Boolean);
+  ids.forEach(id=> cb.checked ? BULK_SELECTED.add(id) : BULK_SELECTED.delete(id));
+  if(document.getElementById('view-overview').classList.contains('active') && calSelectedDate) calSelectDate(calSelectedDate);
+  else if(document.getElementById('view-list').classList.contains('active')) renderList();
+  else updateBulkBar();
+});
+async function bulkSetStatus(status){
+  const recs = TX.filter(t=>BULK_SELECTED.has(t.id));
+  const toChange = recs.filter(r=>r.status!==status);
+  if(!toChange.length){ toast(`ทุกรายการที่เลือกเป็น "${status}" อยู่แล้ว`); return; }
+  if(!confirm(`เปลี่ยนสถานะ ${toChange.length} รายการ เป็น "${status}" ใช่ไหม?`)) return;
+  const by = (typeof getDeviceName==='function' && getDeviceName()) || 'ไม่ระบุ';
+  const ts = Date.now();
+  toChange.forEach(rec=>{
+    if(!rec.editHistory) rec.editHistory = [];
+    rec.editHistory.push({ts, editedBy: by, reason:'เปลี่ยนสถานะด่วน (เลือกหลายรายการ)',
+      changes:[{field:'status', oldValue: rec.status, newValue: status}]});
+    rec.status = status;
+    rec.synced = false;
+  });
+  saveTx();
+  clearBulkSelection();
+  if(document.getElementById('view-overview').classList.contains('active')){ renderCalendarGrid(); if(calSelectedDate) calSelectDate(calSelectedDate); }
+  if(document.getElementById('view-list').classList.contains('active')) renderList();
+  toast(`✓ เปลี่ยนเป็น "${status}" แล้ว ${toChange.length} รายการ`);
+  if(loadJSONsheetUrl()){
+    for(const rec of toChange){ await pushOneToSheet(rec); } // ส่งทีละรายการ ไม่ยิงชีตพร้อมกันทีเดียว
+  }
+}
+
 /* ---------- List ---------- */
 function typeOptionsUnion(){
   const names = TYPES.map(t=>t.name);
@@ -2074,6 +2292,7 @@ function toggleGroup(gid){
 function itemRowHtml(t, nested){
   const tCfg = findType(t.type), sCfg = findStatus(t.status);
   return `<tr${nested?' style="background:var(--card-2);"':''}>
+      <td class="cb-col"><input type="checkbox" class="bulk-cb" data-ids="${escAttr(t.id)}" ${BULK_SELECTED.has(t.id)?'checked':''}></td>
       <td>${t.seq ? ('#' + String(t.seq).padStart(4,'0')) : '—'}</td>
       <td>${fmtDate(t.date)}</td>
       <td>${t.branch||'—'}</td>
@@ -2121,14 +2340,24 @@ function renderList(){
   document.getElementById('listCountLabel').textContent = `ทั้งหมด ${rows.length} รายการ`;
   const groups = groupTx(rows).sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
   const body = document.getElementById('listBody');
-  if(!groups.length){ body.innerHTML = `<tr><td colspan="14" class="empty">ไม่พบรายการที่ตรงกับเงื่อนไข</td></tr>`; return; }
+  // เก็บเฉพาะรายการที่เลือกไว้และยังอยู่ในผลกรองปัจจุบัน กันเปลี่ยนสถานะรายการที่มองไม่เห็นบนจอ
+  const visibleIds = new Set(rows.map(t=>t.id));
+  [...BULK_SELECTED].forEach(id=>{ if(!visibleIds.has(id)) BULK_SELECTED.delete(id); });
+  const listAll = document.getElementById('listSelectAll');
+  listAll.dataset.ids = rows.map(t=>t.id).join(',');
+  listAll.checked = rows.length>0 && rows.every(t=>BULK_SELECTED.has(t.id));
+  updateBulkBar();
+  if(!groups.length){ body.innerHTML = `<tr><td colspan="15" class="empty">ไม่พบรายการที่ตรงกับเงื่อนไข</td></tr>`; return; }
   body.innerHTML = groups.map(g=>{
     if(g.items.length===1) return itemRowHtml(g.items[0], false);
     const open = openGroups.has(g.groupId);
     const sCfg = findStatus(g.status);
+    const gIds = g.items.map(i=>i.id);
+    const gAll = gIds.every(id=>BULK_SELECTED.has(id));
     const summary = `<tr class="group-row${open?' open':''}" onclick="toggleGroup('${g.groupId}')">
+      <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" class="bulk-cb" data-ids="${escAttr(gIds.join(','))}" ${gAll?'checked':''} title="เลือกทุกชิ้นในกลุ่มนี้"></td>
       <td colspan="3"><span class="group-toggle">▸</span> ${fmtDate(g.date)} · ${g.branch||'—'}</td>
-      <td colspan="2" style="color:var(--gold-bright);">${g.items.length} รายการสินค้า — แตะเพื่อดูรายละเอียด</td>
+      <td colspan="3" style="color:var(--gold-bright);">${g.items.length} รายการสินค้า — แตะเพื่อดูรายละเอียด</td>
       <td><b>${fmtMoney(g.totalPrice)}</b></td>
       <td>${g.paymentMethod||'เงินสด'}</td>
       <td>${g.customer||'—'}${g.vip?' ⭐':''}${g.watchlistOverride?' 🚫':''}${g.customerCode?`<br><span style="color:var(--muted-2); font-size:11px;">${g.customerCode}</span>`:''}</td>
@@ -2176,7 +2405,13 @@ function openEditModal(id){
   if(wUnit && !WEIGHT_UNITS.includes(wUnit)) unitSel.innerHTML += `<option>${wUnit}</option>`;
   unitSel.value = wUnit || WEIGHT_UNITS[0] || '';
   document.getElementById('edit_price').value = formatPriceDisplay(String(rec.price||0));
-  document.getElementById('edit_customer').value = rec.customer || '';
+  const titleSel2 = document.getElementById('edit_title');
+  titleSel2.innerHTML = TITLES.map(t=>`<option>${t}</option>`).join('');
+  const recTitle = rec.customerTitle || '';
+  if(recTitle && !TITLES.includes(recTitle)) titleSel2.innerHTML += `<option>${recTitle}</option>`;
+  titleSel2.value = recTitle || (TITLES.includes('ไม่ระบุ') ? 'ไม่ระบุ' : TITLES[0] || '');
+  document.getElementById('edit_firstName').value = rec.customerFirstName || '';
+  document.getElementById('edit_lastName').value = rec.customerLastName || '';
   document.getElementById('edit_phone').value = rec.phone || '';
   const statusSel = document.getElementById('edit_status');
   statusSel.innerHTML = STATUSES.map(s=>`<option>${s.name}</option>`).join('');
@@ -2227,7 +2462,10 @@ function saveEdit(){
     details: ()=>document.getElementById('edit_details').value.trim(),
     weight: ()=>newWeight,
     price: ()=>newPrice,
-    customer: ()=>document.getElementById('edit_customer').value.trim(),
+    customerTitle: ()=>{ const v = document.getElementById('edit_title').value; return v==='ไม่ระบุ' ? '' : v; },
+    customerFirstName: ()=>document.getElementById('edit_firstName').value.trim(),
+    customerLastName: ()=>document.getElementById('edit_lastName').value.trim(),
+    customer: ()=>buildFullName(document.getElementById('edit_title').value, document.getElementById('edit_firstName').value, document.getElementById('edit_lastName').value),
     phone: ()=>document.getElementById('edit_phone').value.trim(),
     status: ()=>document.getElementById('edit_status').value,
     staff: ()=>document.getElementById('edit_staff').value.trim(),
@@ -2271,6 +2509,9 @@ const EXPORT_COLUMNS = [
   {key:'price', label:'ราคา'},
   {key:'paymentMethod', label:'ช่องทางชำระเงิน'},
   {key:'customer', label:'ลูกค้า'},
+  {key:'customerTitle', label:'คำนำหน้า'},
+  {key:'customerFirstName', label:'ชื่อ'},
+  {key:'customerLastName', label:'นามสกุล'},
   {key:'customerCode', label:'รหัสลูกค้า'},
   {key:'vip', label:'ลูกค้าประจำ'},
   {key:'phone', label:'เบอร์โทร'},
@@ -2338,7 +2579,7 @@ function exportXLSX(){
     costDates.forEach(d=>{
       const rev = TX.filter(t=>t.date===d).reduce((s,t)=>s+Number(t.price||0),0);
       const cost = Number(DAILY_COSTS[d])||0;
-      plAoa.push([d, rev, cost, rev-cost]);
+      plAoa.push([d, rev, cost, cost-rev]); // กำไรสุทธิ = ยอดขาย/ส่งหลอม − ยอดรับซื้อ
     });
     const ws3 = XLSX.utils.aoa_to_sheet(plAoa);
     ws3['!cols'] = [{wch:14},{wch:14},{wch:14},{wch:14}];
@@ -2397,9 +2638,7 @@ function printReport(scope){
   } else if(scope==='overview'){
     const {from, to, label} = getPLPeriodRange(plPeriod);
     const rangeRows = TX.filter(t=>t.date>=from && t.date<=to);
-    const revenue = rangeRows.reduce((s,t)=>s+Number(t.price||0),0);
-    const cost = sumCostsInRange(from, to);
-    const net = revenue - cost;
+    const {purchase: revenue, sales: cost, net} = computePL(from, to);
     const netLabel = net < 0 ? ('ขาดทุน ' + fmtMoney(Math.abs(net))) : fmtMoney(net);
     // ใส่รายการจริงในช่วงนั้นเข้าไปด้วย (ไม่ใช่แค่ยอดสรุป) เพื่อให้พนักงานเอาใบพิมพ์นี้ไปใช้ตรวจงานจริงได้
     const groups = groupTx(rangeRows).sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
@@ -2439,6 +2678,7 @@ function renderSettings(){
   renderTypeCfg();
   renderStatusCfg();
   renderWeightCfg();
+  renderTitleCfg();
   renderBrandForm();
   renderFontForm();
   renderWatchCfg();
@@ -2719,6 +2959,31 @@ function addStatus(){
   renderStatusCfg(); toast('เพิ่มสถานะแล้ว');
 }
 
+/* ---------- Settings: customer name titles (คำนำหน้า) ---------- */
+function renderTitleCfg(){
+  const wrap = document.getElementById('titleCfgList');
+  wrap.innerHTML = TITLES.map((t,i)=>`
+    <div class="cfg-row">
+      <input type="text" value="${escAttr(t)}" onchange="updateTitle(${i}, this.value)">
+      <button class="cfg-remove" onclick="removeTitle(${i})" title="ลบ">✕</button>
+    </div>`).join('') || `<div class="empty">ยังไม่มีคำนำหน้า</div>`;
+}
+function updateTitle(i, val){
+  val = val.trim(); if(!val){ renderTitleCfg(); return; }
+  TITLES[i] = val; saveJSON(LS_TITLES, TITLES); toast('บันทึกแล้ว — มีผลกับรายการใหม่');
+}
+function removeTitle(i){
+  TITLES.splice(i,1); saveJSON(LS_TITLES, TITLES); renderTitleCfg();
+}
+function addTitle(){
+  const val = document.getElementById('newTitleName').value.trim();
+  if(!val){ toast('กรุณาใส่คำนำหน้า'); return; }
+  if(TITLES.includes(val)){ toast('มีคำนำหน้านี้อยู่แล้ว'); return; }
+  TITLES.push(val); saveJSON(LS_TITLES, TITLES);
+  document.getElementById('newTitleName').value='';
+  renderTitleCfg(); toast('เพิ่มคำนำหน้าแล้ว');
+}
+
 /* ---------- Settings: weight units ---------- */
 function renderWeightCfg(){
   const wrap = document.getElementById('weightCfgList');
@@ -2883,12 +3148,12 @@ function clearPin(){
 function exportBackupJSON(){
   const backup = {
     exportedAt: Date.now(), schemaVersion: SCHEMA_VERSION,
-    TX, BRANCHES, TYPES, STATUSES, WEIGHT_UNITS, FONT, BRAND, THEME, CUSTOMERS, WATCHLIST, DAILY_COSTS, LABELS
+    TX, BRANCHES, TYPES, STATUSES, WEIGHT_UNITS, FONT, BRAND, THEME, CUSTOMERS, WATCHLIST, DAILY_COSTS, LABELS, TITLES
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'na-non-backup-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  a.href = url; a.download = 'na-non-backup-' + isoToday() + '.json'; a.click();
   URL.revokeObjectURL(url);
 }
 document.getElementById('restoreFileInput').addEventListener('change', function(e){
@@ -2912,6 +3177,8 @@ document.getElementById('restoreFileInput').addEventListener('change', function(
       WATCHLIST = data.WATCHLIST || [];
       DAILY_COSTS = data.DAILY_COSTS || {};
       LABELS = Object.assign({}, DEFAULT_LABELS, data.LABELS || {});
+      TITLES = data.TITLES || TITLES;
+      saveJSON(LS_TITLES, TITLES);
       saveTx(); saveJSON(LS_BRANCHES,BRANCHES); saveJSON(LS_TYPES,TYPES); saveJSON(LS_STATUSES,STATUSES);
       saveJSON(LS_WEIGHT_UNITS,WEIGHT_UNITS); saveJSON(LS_FONT,FONT); saveJSON(LS_BRAND,BRAND); saveJSON(LS_THEME,THEME);
       saveCustomers(); saveJSON(LS_WATCHLIST,WATCHLIST); saveDailyCosts(); saveJSON(LS_LABELS,LABELS);
@@ -3161,7 +3428,11 @@ function normalizeSheetRow(row){
     details: row.details||'', weight: row.weight||'', price: Number(row.price)||0,
     paymentMethod: row.paymentMethod||'เงินสด',
     customer: row.customer||'', customerCode: row.customerCode||'',
-    vip: truthy(row.vip), phone: row.phone||'', idcard: row.idcard||'',
+    // ถ้าแถวเก่าในชีตยังไม่มีคอลัมน์ใหม่ (customerTitle ฯลฯ) ปล่อยเป็น undefined แล้ว normalizeRecord จะแยกจากชื่อเต็มให้เอง
+    customerTitle: row.customerFirstName!==undefined && row.customerFirstName!=='' ? String(row.customerTitle||'') : undefined,
+    customerFirstName: row.customerFirstName!==undefined && row.customerFirstName!=='' ? String(row.customerFirstName) : undefined,
+    customerLastName: row.customerFirstName!==undefined && row.customerFirstName!=='' ? String(row.customerLastName||'') : undefined,
+    vip: truthy(row.vip), phone: normalizePhone(row.phone), idcard: row.idcard!==undefined && row.idcard!==null ? String(row.idcard) : '',
     watchlistOverride: truthy(row.watchlistOverride),
     status: row.status||'', staff: row.staff||'', note: row.note||'',
     createdAt: Number(row.createdAt)||Date.now(),
@@ -3186,6 +3457,9 @@ async function pullFromSheet(silent){
       const idx = TX.findIndex(t=>t.id===incoming.id);
       if(idx>=0){
         const local = TX[idx];
+        // เครื่องนี้มีการแก้ไขที่ยังส่งขึ้นชีตไม่สำเร็จ (เช่น เพิ่งกดเปลี่ยนสถานะ) — อย่าเอาข้อมูลเก่าจากชีตมาทับ
+        // ไม่งั้นค่าที่เพิ่งแก้จะ "เด้งกลับ" รอบถัดไปจะส่งขึ้นชีตให้เองอัตโนมัติ
+        if(local.synced===false) return;
         incoming.photos = local.photos && local.photos.length ? local.photos : incoming.photos;
         incoming.slipPhotos = local.slipPhotos && local.slipPhotos.length ? local.slipPhotos : incoming.slipPhotos;
         incoming.driveUrls = incoming.driveUrls.length ? incoming.driveUrls : local.driveUrls;
