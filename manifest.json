@@ -1,0 +1,32 @@
+{
+  "name": "ณ.นนท์ — ระบบหลังบ้าน",
+  "short_name": "ณ.นนท์",
+  "description": "ระบบหลังบ้านร้านรับซื้อตั๋วจำนำ ทอง เงิน เพชร",
+  "lang": "th",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b2a29",
+  "theme_color": "#111114",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
