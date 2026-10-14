@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ระบบหลังบ้าน</title>
+<!-- v7: ติดตั้งเป็นแอปบนมือถือได้ (PWA) — ต้องมีไฟล์ manifest.json, sw.js และไอคอน อยู่โฟลเดอร์เดียวกับไฟล์นี้ -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0b0d" id="metaThemeColor">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="ณ.นนท์">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,21 +38,28 @@
     --pl-profit:#4e8a5c;
     --pl-loss:#d1503d;
     --radius:10px;
+    /* v7 theme tokens — ค่าจริงถูกตั้งโดย applyTheme() ตามธีมที่เลือก (ค่าตรงนี้ = สำรองกรณีสคริปต์ยังไม่ทำงาน) */
+    --panel-2:#0d0d10;
+    --gold-deep:#7a5f1f;
+    --accent-rgb:201,165,76;
+    --accent-bright-rgb:227,199,122;
+    --on-accent:#1a1407;
+    --code-bg:#08080a;
+    --font-display:'Noto Serif Thai',serif;
+    --glow:none;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
     margin:0;
-    background:
-      radial-gradient(1200px 500px at 10% -10%, rgba(205,164,52,0.08), transparent 60%),
-      var(--bg);
+    background:var(--glow), var(--bg);
     color:var(--cream);
     font-family:'Sarabun',sans-serif;
     -webkit-font-smoothing:antialiased;
     padding-top:env(safe-area-inset-top,0px);
     padding-bottom:env(safe-area-inset-bottom,0px);
   }
-  h1,h2,h3,.display{font-family:'Noto Serif Thai',serif;}
+  h1,h2,h3,.display{font-family:var(--font-display);}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
 
@@ -62,14 +78,14 @@
   }
   .brand-mark{
     width:42px; height:42px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, #7c5f16 100%);
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, var(--gold-deep) 100%);
     display:flex; align-items:center; justify-content:center;
-    font-family:'Noto Serif Thai',serif; font-weight:700; color:#241a06; font-size:19px;
+    font-family:var(--font-display); font-weight:700; color:var(--on-accent); font-size:19px;
     box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 4px 10px rgba(0,0,0,.5);
     flex:none; overflow:hidden;
   }
   .brand-mark img{width:100%; height:100%; object-fit:cover;}
-  .brand-text .name{font-family:'Noto Serif Thai',serif; font-weight:700; font-size:16px; line-height:1.25; color:var(--gold-bright);}
+  .brand-text .name{font-family:var(--font-display); font-weight:700; font-size:16px; line-height:1.25; color:var(--gold-bright);}
   .brand-text .sub{font-size:11.5px; color:var(--muted); letter-spacing:.02em;}
 
   nav{padding:14px 12px; flex:1; overflow-y:auto;}
@@ -90,7 +106,7 @@
     background:var(--card); border:1px solid var(--line); font-size:12px; color:var(--muted);
   }
   .sync-badge .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px;}
-  .dot.off{background:#6b6250;}
+  .dot.off{background:var(--muted-2);}
   .dot.on{background:var(--green); box-shadow:0 0 0 3px rgba(78,138,92,.18);}
   .dot.busy{background:var(--amber);}
 
@@ -105,7 +121,7 @@
     display:inline-flex; align-items:center; gap:8px; transition:border-color .15s, background .15s;
   }
   .btn:hover{border-color:var(--gold);}
-  .btn-primary{background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#231a06; border:none; font-weight:600;}
+  .btn-primary{background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:var(--on-accent); border:none; font-weight:600;}
   .btn-primary:hover{filter:brightness(1.06);}
   .btn-danger{background:transparent; border:1px solid var(--red); color:var(--red-bright);}
   .btn-danger:hover{background:rgba(178,59,43,.12);}
@@ -119,7 +135,7 @@
   .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
   .stat{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
   .stat .label{font-size:12px; color:var(--muted); margin-bottom:8px;}
-  .stat .value{font-family:'Noto Serif Thai',serif; font-size:24px; color:var(--gold-bright); font-weight:600;}
+  .stat .value{font-family:var(--font-display); font-size:24px; color:var(--gold-bright); font-weight:600;}
   .stat .sub{font-size:11.5px; color:var(--muted-2); margin-top:4px;}
 
   .panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:18px;}
@@ -139,7 +155,7 @@
     white-space:nowrap;
   }
   tbody td{padding:10px 10px; border-bottom:1px solid var(--line); color:var(--cream); vertical-align:top;}
-  tbody tr:hover{background:rgba(205,164,52,.05);}
+  tbody tr:hover{background:rgba(var(--accent-rgb),.05);}
   .table-wrap{overflow-x:auto;}
   .tag{
     display:inline-block; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600;
@@ -167,7 +183,7 @@
     border:1px solid var(--line); background:var(--card-2); border-radius:8px; padding:10px 6px;
     text-align:center; font-size:12.5px; color:var(--muted); cursor:pointer; user-select:none;
   }
-  .type-opt.sel{background:rgba(205,164,52,.1);}
+  .type-opt.sel{background:rgba(var(--accent-rgb),.1);}
   .weight-row{display:grid; grid-template-columns:1fr 120px; gap:8px;}
   .form-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px; grid-column:1/-1;}
 
@@ -184,8 +200,8 @@
     font-size:12.5px; color:var(--gold-bright);
   }
   pre{
-    background:#0b0906; border:1px solid var(--line); border-radius:8px; padding:14px; overflow-x:auto;
-    font-size:12px; line-height:1.6; color:#cdbf98;
+    background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:14px; overflow-x:auto;
+    font-size:12px; line-height:1.6; color:var(--muted);
   }
   .toast{
     position:fixed; bottom:22px; right:22px; background:var(--card); border:1px solid var(--gold);
@@ -205,7 +221,7 @@
   .cfg-add input{flex:1;}
   .impact-note{
     display:flex; gap:10px; background:rgba(192,138,46,.08); border:1px solid rgba(192,138,46,.35);
-    border-radius:8px; padding:10px 12px; font-size:12.5px; color:#d9b877; margin-bottom:14px; line-height:1.7;
+    border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--gold-bright); margin-bottom:14px; line-height:1.7;
   }
   .watch-warning{
     display:none; align-items:center; gap:8px; background:rgba(178,59,43,.14); border:1px solid var(--red);
@@ -224,12 +240,12 @@
     display:flex; align-items:center; gap:8px; border:1px solid var(--line); background:var(--card-2);
     padding:8px 12px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--muted);
   }
-  .swatch-row .opt.sel{border-color:var(--gold); color:var(--gold-bright); background:rgba(205,164,52,.1);}
+  .swatch-row .opt.sel{border-color:var(--gold); color:var(--gold-bright); background:rgba(var(--accent-rgb),.1);}
   .logo-row{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
   .logo-preview{
     width:64px; height:64px; border-radius:50%; overflow:hidden; flex:none;
-    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, #7c5f16 100%);
-    display:flex; align-items:center; justify-content:center; font-family:'Noto Serif Thai',serif; font-weight:700; color:#241a06; font-size:24px;
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, var(--gold-deep) 100%);
+    display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; color:var(--on-accent); font-size:24px;
   }
   .logo-preview img{width:100%; height:100%; object-fit:cover;}
 
@@ -290,7 +306,7 @@
   /* ---------- Bottom Navigation Bar (mobile/tablet) — vintage-modern ---------- */
   .bottom-nav{
     display:none; position:fixed; left:0; right:0; bottom:0; z-index:40;
-    background:linear-gradient(180deg, var(--panel) 0%, #120f08 100%);
+    background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
     border-top:1px solid var(--gold); box-shadow:0 -8px 24px rgba(0,0,0,.45);
     padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));
     justify-content:space-around; align-items:stretch;
@@ -299,7 +315,7 @@
     flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
     color:var(--muted); text-decoration:none; font-size:10.5px; padding:6px 2px 4px;
     border-radius:10px; position:relative; cursor:pointer; user-select:none;
-    font-family:'Noto Serif Thai',serif; letter-spacing:.01em;
+    font-family:var(--font-display); letter-spacing:.01em;
   }
   .bn-item svg{width:20px; height:20px; opacity:.8;}
   .bn-item .bn-ring{
@@ -309,7 +325,7 @@
   .bn-item.active{color:var(--gold-bright);}
   .bn-item.active svg{opacity:1;}
   .bn-item.active .bn-ring{
-    background:radial-gradient(circle at 35% 30%, rgba(233,199,102,.18), rgba(205,164,52,.06) 70%);
+    background:radial-gradient(circle at 35% 30%, rgba(var(--accent-bright-rgb),.18), rgba(var(--accent-rgb),.06) 70%);
     border-color:var(--gold);
   }
   .bn-item.bn-main .bn-ring{
@@ -317,8 +333,202 @@
     background:linear-gradient(180deg, var(--gold-bright), var(--gold));
     border:3px solid var(--panel); box-shadow:0 4px 14px rgba(0,0,0,.4);
   }
-  .bn-item.bn-main svg{color:#241a06; opacity:1;}
+  .bn-item.bn-main svg{color:var(--on-accent); opacity:1;}
   .bn-item.bn-main{color:var(--gold-bright); font-weight:600;}
+
+  /* ================= v7: THEME LAYER + SETTINGS LIST =================
+     ธีมทั้งหมดถูกกำหนดเป็น "ชุดตัวแปรสี" ใน THEME_PRESETS (ฝั่ง JS) — CSS ด้านล่างอ่านแค่ตัวแปร
+     จึงเพิ่มธีมใหม่ได้โดยไม่ต้องแก้ CSS เลย */
+  .app{position:relative; z-index:1;}
+  .theme-art{
+    position:fixed; left:0; right:0; bottom:0; height:min(30vh,240px); z-index:0; pointer-events:none;
+    -webkit-mask-image:linear-gradient(to top, #000 55%, transparent);
+            mask-image:linear-gradient(to top, #000 55%, transparent);
+  }
+  .theme-art svg{width:100%; height:100%; display:block;}
+  @media (max-width:900px){ .theme-art{bottom:calc(64px + env(safe-area-inset-bottom,0px)); height:min(24vh,190px);} }
+  @media print{ .theme-art{display:none !important;} }
+
+  /* อ่านง่ายขึ้น: ตัวอักษรตารางและคำอธิบายใหญ่ขึ้นเล็กน้อย */
+  tbody td{font-size:14px;}
+  .panel .hint{font-size:13px; line-height:1.65;}
+
+  /* ธีมสว่าง: สีป้ายประเภทสินค้าที่อ่อนมาก (เช่น เพชร/เงิน) ให้เข้มขึ้นให้อ่านออก */
+  html[data-scheme="light"] .tag, html[data-scheme="light"] .type-opt.sel{filter:brightness(.6) saturate(1.5);}
+
+  /* ================= v8: ANIMATED THEMES =================
+     เอฟเฟกต์เคลื่อนไหวทำด้วย CSS ล้วน (ขยับแค่ตำแหน่ง/ความโปร่งใส ไม่หนักเครื่อง)
+     หยุดเองเมื่อสลับไปแอปอื่น และปิดได้ในหน้าธีม หรือถ้ามือถือตั้ง "ลดการเคลื่อนไหว" ไว้ */
+  .theme-fx{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
+  html.no-motion .theme-fx, html.no-motion .tc-fx{display:none;}
+  html.no-motion .theme-art *, html.no-motion .tc-art *{animation:none !important;}
+  html.fx-paused .theme-fx *, html.fx-paused .theme-art *{animation-play-state:paused !important;}
+  @media (prefers-reduced-motion: reduce){
+    .theme-fx, .tc-fx{display:none;}
+    .theme-art *, .tc-art *, .bn-item.bn-main .bn-ring{animation:none !important;}
+  }
+  .fx{position:absolute; display:block; will-change:transform,opacity;}
+  .fx-dust{width:3px; height:3px; border-radius:50%; background:var(--art-window); bottom:-6px; opacity:0; animation:fxRise linear infinite;}
+  @keyframes fxRise{0%{transform:translate(0,0);opacity:0}15%{opacity:.9}100%{transform:translate(var(--dx,20px),calc(var(--rise,55vh) * -1));opacity:0}}
+  .fx-fly{width:5px; height:5px; border-radius:50%; background:var(--fx-glow); box-shadow:0 0 8px 3px var(--fx-glow);
+    animation-name:fxWander, fxBlink; animation-timing-function:ease-in-out, ease-in-out; animation-iteration-count:infinite, infinite; animation-direction:alternate, normal;}
+  @keyframes fxWander{0%{transform:translate(0,0)}33%{transform:translate(var(--dx),calc(var(--dy) * -1))}66%{transform:translate(calc(var(--dx) * -.6),var(--dy))}100%{transform:translate(calc(var(--dx) * .4),calc(var(--dy) * -.5))}}
+  @keyframes fxBlink{0%,100%{opacity:.12}50%{opacity:1}}
+  .fx-snow{top:-10px; width:var(--s,4px); height:var(--s,4px); border-radius:50%; background:#fff; animation:fxFall linear infinite;}
+  @keyframes fxFall{0%{transform:translate(0,0)}100%{transform:translate(var(--dx,30px),var(--fall,105vh))}}
+  .fx-shoot{top:10%; left:-12%; width:130px; height:2px; border-radius:2px; opacity:0;
+    background:linear-gradient(90deg,transparent,var(--art-window),#fff); animation:fxShoot 15s linear infinite; animation-delay:4s;}
+  @keyframes fxShoot{0%,86%{opacity:0;transform:translate(0,0) rotate(14deg)}88%{opacity:1}100%{opacity:0;transform:translate(75vw,19vh) rotate(14deg)}}
+  .fx-lantern{bottom:-50px; width:var(--s,22px); height:calc(var(--s,22px) * 1.25); opacity:0; animation:fxLantern linear infinite;}
+  .fx-lantern i{display:block; width:100%; height:100%; position:relative; border-radius:45% 45% 40% 40%;
+    background:radial-gradient(circle at 50% 40%, #ffd27a, #e2462f 55%, #9e1c14); box-shadow:0 0 18px 4px rgba(255,140,60,.4);}
+  .fx-lantern i::before, .fx-lantern i::after{content:''; position:absolute; left:26%; right:26%; height:11%; background:#e7b94f; border-radius:2px;}
+  .fx-lantern i::before{top:-7%;} .fx-lantern i::after{bottom:-7%;}
+  @keyframes fxLantern{0%{transform:translate(0,0);opacity:0}8%{opacity:.95}50%{transform:translate(var(--dx,20px),calc(var(--rise,110vh) * -.5))}90%{opacity:.85}100%{transform:translate(0,calc(var(--rise,110vh) * -1));opacity:0}}
+  .fx-aurora{left:-20%; right:-20%; top:6%; height:30%; filter:blur(20px); opacity:.9;
+    background:linear-gradient(100deg,transparent 10%,rgba(80,220,190,.18) 30%,rgba(120,160,255,.12) 50%,rgba(80,220,190,.16) 70%,transparent 90%);
+    animation:fxAurora 16s ease-in-out infinite alternate;}
+  @keyframes fxAurora{0%{transform:translateX(-6%) skewY(-3deg)}100%{transform:translateX(6%) skewY(3deg)}}
+  .sky-blink{animation:fxBlink 5s ease-in-out infinite;}
+  .sky-star{animation:fxTwinkle 4s ease-in-out infinite;}
+  @keyframes fxTwinkle{0%,100%{opacity:.25}50%{opacity:1}}
+  /* ตกแต่งปุ่ม + ตรงกลางตามธีม */
+  html[data-fab="snow"] .bn-item.bn-main .bn-ring{position:relative; overflow:visible;}
+  html[data-fab="snow"] .bn-item.bn-main .bn-ring::before{content:''; position:absolute; top:-8px; left:-3px; right:-3px; height:25px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 24'%3E%3Cpath fill='%23ffffff' d='M2 15C2 6 12 1 26 1s24 5 24 14c-3 1-4 6-7 4s-4 3-8 1-4 4-8 2-4 3-7 1-4 3-7 1-3 2-6 0-3 1-6-1c-1 0-2-1-3-2z'/%3E%3Cpath fill='%23dfe9f3' d='M6 13c6-3 14-4 20-4s14 1 20 4c-6-1-13-2-20-2S12 12 6 13z'/%3E%3C/svg%3E") center top / 100% 100% no-repeat; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)); pointer-events:none;}
+  html[data-fab="glow"] .bn-item.bn-main .bn-ring{animation:fabGlow 3s ease-in-out infinite;}
+  @keyframes fabGlow{0%,100%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 0 rgba(var(--accent-bright-rgb),0)}50%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 20px 7px rgba(var(--accent-bright-rgb),.5)}}
+  html[data-fab="lantern"] .bn-item.bn-main .bn-ring{background:radial-gradient(circle at 50% 38%, #ffd27a, #e2462f 58%, #9e1c14); box-shadow:0 0 16px 4px rgba(255,120,50,.45);}
+  html[data-fab="lantern"] .bn-item.bn-main svg{color:#fff6e0;}
+  .tc-fx{position:absolute; inset:0; overflow:hidden; pointer-events:none; --rise:190px; --fall:200px;}
+  .tc-badge{display:inline-block; vertical-align:middle; margin-left:6px; font-size:10.5px; padding:1px 7px; border-radius:20px; border:1px solid var(--line); color:var(--gold-bright);}
+  .motion-toggle{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--cream); margin:0 0 14px; cursor:pointer;}
+  .motion-toggle input{width:18px; height:18px; accent-color:var(--gold);}
+
+  /* ================= v8: APP ICON PICKER + PRODUCT ICON PACKS ================= */
+  .appicon-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:14px; margin-bottom:14px;}
+  .appicon-opt{background:none; border:none; padding:0; cursor:pointer; font-family:inherit; color:var(--cream); display:flex; flex-direction:column; align-items:center; gap:7px;}
+  .appicon-opt[disabled]{opacity:.45; cursor:not-allowed;}
+  .ai-img{width:76px; height:76px; border-radius:18px; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    background:var(--card-2); border:2px solid transparent; box-shadow:0 3px 10px rgba(0,0,0,.3); position:relative;}
+  .appicon-opt.sel .ai-img{border-color:var(--gold); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.35);}
+  .ai-img img{width:100%; height:100%; object-fit:cover;}
+  .ai-img.ai-logo{background:radial-gradient(circle at 50% 35%, #1c1c22, #0b0b0d);}
+  .ai-img.ai-logo img{width:70%; height:70%; border-radius:50%; box-shadow:0 0 0 3px #c9a54c;}
+  .ai-empty{font-size:26px; color:var(--muted-2);}
+  .ai-name{font-size:12px; text-align:center; line-height:1.35; color:var(--muted);}
+  .appicon-opt.sel .ai-name{color:var(--gold-bright); font-weight:600;}
+  .ticon{display:inline-flex; align-items:center; justify-content:center; width:1.6em; height:1.6em; flex:none; vertical-align:middle;}
+  .ticon svg{width:70%; height:70%;}
+  .ticon-emoji{width:auto; height:auto; font-size:1.05em;}
+  .ticon-img img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
+  .ticon-coin{border-radius:50%; color:var(--on-accent);
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 58%, var(--gold-deep));
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.28), 0 1px 3px rgba(0,0,0,.35);}
+  .ticon-coin svg{width:60%; height:60%;}
+  .ticon-line{color:var(--gold-bright);}
+  .ticon-tint{border-radius:30%; border:1px solid;}
+  .tag .ticon{width:1.4em; height:1.4em; margin:-3px 5px -3px -4px;}
+  .type-opt .ticon{display:flex; width:30px; height:30px; margin:0 auto 5px;}
+  .type-opt .ticon-emoji{width:auto; height:auto; font-size:20px;}
+  .type-row .tname .ticon{margin-right:6px; width:1.45em; height:1.45em;}
+  .iconpack-grid{display:grid; gap:12px;}
+  .iconpack-card{border:2px solid var(--line); border-radius:14px; background:var(--card-2); padding:12px 14px; cursor:pointer; text-align:left; font-family:inherit; color:var(--cream);}
+  .iconpack-card.sel{border-color:var(--gold);}
+  .iconpack-card .ip-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:10px;}
+  .iconpack-card .ip-name{font-weight:600; font-size:14.5px;}
+  .iconpack-card .ip-desc{font-size:12px; color:var(--muted);}
+  @media (max-width:900px){ .iconpack-card .ip-head{flex-direction:column; align-items:flex-start; gap:2px;} }
+  .ip-icons{display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px;}
+  .ip-cell{display:flex; flex-direction:column; align-items:center; gap:5px; font-size:11.5px; color:var(--muted); text-align:center; line-height:1.3;}
+  .ip-cell .ticon{width:40px; height:40px; font-size:26px;}
+  .type-cfg-icon{flex:none; display:flex; align-items:center;}
+  .type-cfg-icon .ticon{width:34px; height:34px; font-size:22px;}
+
+  /* ---- Theme picker ---- */
+  .theme-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px; margin-bottom:16px;}
+  .theme-card{
+    border:2px solid var(--line); border-radius:14px; padding:8px; background:var(--card-2);
+    cursor:pointer; transition:border-color .15s, transform .15s; position:relative; text-align:left;
+    font-family:inherit; color:var(--cream);
+  }
+  .theme-card:hover{transform:translateY(-2px);}
+  .theme-card.sel{border-color:var(--gold);}
+  .theme-card .tc-check{
+    position:absolute; top:14px; right:14px; width:24px; height:24px; border-radius:50%;
+    background:var(--gold); color:var(--on-accent); display:none; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; z-index:2; box-shadow:0 2px 6px rgba(0,0,0,.35);
+  }
+  .theme-card.sel .tc-check{display:flex;}
+  .theme-card .tc-current{
+    display:inline-block; vertical-align:middle; margin-left:6px; font-size:10.5px; font-weight:600; padding:1px 8px; border-radius:20px;
+    background:var(--gold); color:var(--on-accent);
+  }
+  .tc-screen{
+    height:190px; border-radius:9px; overflow:hidden; position:relative;
+    background:var(--glow), var(--bg); border:1px solid var(--line); padding:12px 10px;
+  }
+  .tc-title{height:9px; width:55%; border-radius:4px; background:var(--cream); opacity:.85; margin-bottom:5px;}
+  .tc-sub{height:6px; width:38%; border-radius:4px; background:var(--muted); opacity:.7; margin-bottom:10px;}
+  .tc-cards{display:grid; grid-template-columns:1fr 1fr; gap:6px; position:relative; z-index:1;}
+  .tc-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:7px 6px;}
+  .tc-card i{display:block; height:5px; width:60%; background:var(--muted); opacity:.6; border-radius:3px; margin-bottom:6px;}
+  .tc-card b{display:block; height:9px; width:75%; background:var(--gold-bright); border-radius:3px;}
+  .tc-btn{position:relative; z-index:1; margin-top:8px; height:16px; width:52%; border-radius:5px; background:linear-gradient(180deg,var(--gold-bright),var(--gold));}
+  .tc-art{position:absolute; left:0; right:0; bottom:0; height:78px;}
+  .tc-art svg{width:100%; height:100%; display:block;}
+  .theme-card .tc-name{font-size:14px; font-weight:600; margin:9px 4px 1px; color:var(--cream);}
+  .theme-card .tc-desc{font-size:11.5px; color:var(--muted); margin:0 4px 3px; line-height:1.45;}
+  .theme-actions{
+    display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:45;
+    background:var(--card); border:1px solid var(--gold); border-radius:14px; padding:10px 12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45); gap:10px; align-items:center;
+  }
+  .theme-actions.show{display:flex;}
+  .theme-actions .ta-text{font-size:13px; color:var(--muted); white-space:nowrap;}
+  @media (max-width:900px){ .theme-actions{bottom:calc(84px + env(safe-area-inset-bottom,0px)); width:calc(100vw - 24px); justify-content:center;} }
+  .theme-advanced{border-top:1px solid var(--line); padding-top:12px; margin-top:6px;}
+  .theme-advanced summary{cursor:pointer; color:var(--muted); font-size:13.5px;}
+
+  /* ---- Settings home: grouped list (iOS style) ---- */
+  #view-settings{max-width:760px;}
+  #view-settings > .panel[data-panel-id]{display:none;}
+  #view-settings.sub-open > .panel.page-active{display:block;}
+  #view-settings.sub-open #settingsHome,
+  #view-settings.sub-open .settings-home-title{display:none;}
+  #view-settings.sub-open > .panel.page-active > h3{display:none;}
+  .settings-group-title{font-size:12.5px; color:var(--muted); margin:18px 6px 8px; letter-spacing:.02em;}
+  .settings-group{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .settings-row{
+    display:flex; align-items:center; gap:14px; width:100%; padding:13px 16px; background:none; border:none;
+    border-bottom:1px solid var(--line); color:var(--cream); cursor:pointer; text-align:left; font-family:inherit;
+  }
+  .settings-group .settings-row:last-child{border-bottom:none;}
+  .settings-row:hover{background:rgba(var(--accent-rgb),.06);}
+  .settings-row:active{background:rgba(var(--accent-rgb),.12);}
+  .s-icon{
+    width:36px; height:36px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center;
+    color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .s-icon svg{width:20px; height:20px;}
+  .s-text{flex:1; min-width:0;}
+  .s-label{font-size:15.5px; font-weight:600; line-height:1.35;}
+  .s-sub{font-size:12.5px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .s-chev{color:var(--muted-2); flex:none;}
+  .settings-subhead{display:none; align-items:center; gap:10px; margin-bottom:16px;}
+  #view-settings.sub-open .settings-subhead{display:flex;}
+  .sub-back{
+    display:inline-flex; align-items:center; gap:2px; background:none; border:none; color:var(--gold-bright);
+    font-family:inherit; font-size:15px; cursor:pointer; padding:6px 4px; margin-left:-6px;
+  }
+  .settings-subhead h2{margin:0; font-size:20px; color:var(--cream); font-weight:600;}
+  .install-guide{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .install-col b{color:var(--cream);}
+  @media (max-width:900px){
+    .install-guide{grid-template-columns:1fr;}
+    .theme-grid{grid-template-columns:1fr 1fr; gap:10px;}
+    .tc-screen{height:170px;}
+  }
 
   /* ---------- Bulk status bar (v6): เลือกหลายรายการแล้วเปลี่ยนสถานะทีเดียว ---------- */
   .bulk-cb{width:18px; height:18px; accent-color:var(--gold); cursor:pointer; vertical-align:middle;}
@@ -370,7 +580,7 @@
     padding:14px 16px; margin-bottom:12px; position:relative;
   }
   .line-item .line-item-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-  .line-item .line-item-head b{color:var(--gold-bright); font-size:12.5px; font-family:'Noto Serif Thai',serif;}
+  .line-item .line-item-head b{color:var(--gold-bright); font-size:12.5px; font-family:var(--font-display);}
   .line-item-remove{background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px;}
   .line-item-remove:hover{color:var(--red-bright);}
   .add-line-btn{
@@ -379,11 +589,11 @@
     padding:12px; border-radius:var(--radius); cursor:pointer; font-size:13.5px; font-family:inherit;
     margin-bottom:16px;
   }
-  .add-line-btn:hover{background:rgba(205,164,52,.08);}
+  .add-line-btn:hover{background:rgba(var(--accent-rgb),.08);}
 
   /* ---------- Group drill-down (dashboard/list grouped by date+customer) ---------- */
   .group-row{cursor:pointer;}
-  .group-row:hover{background:rgba(205,164,52,.07) !important;}
+  .group-row:hover{background:rgba(var(--accent-rgb),.07) !important;}
   .group-items{display:none;}
   .group-items.open{display:table-row-group;}
   .group-items td{background:var(--card-2); border-bottom:1px solid var(--line);}
@@ -392,7 +602,7 @@
 
   /* ---------- Calendar (Overview) ---------- */
   .cal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-  .cal-header .cal-title{font-family:'Noto Serif Thai',serif; font-size:17px; color:var(--gold-bright);}
+  .cal-header .cal-title{font-family:var(--font-display); font-size:17px; color:var(--gold-bright);}
   .cal-nav-btn{background:var(--card-2); border:1px solid var(--line); color:var(--cream); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px;}
   .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; touch-action:pan-y;}
   .cal-dow{text-align:center; font-size:11px; color:var(--muted); padding-bottom:4px;}
@@ -403,7 +613,7 @@
   .cal-cell:hover{border-color:var(--gold);}
   .cal-cell.empty{background:transparent; border-color:transparent; cursor:default;}
   .cal-cell.today{border-color:var(--gold);}
-  .cal-cell.sel{background:rgba(205,164,52,.14); border-color:var(--gold);}
+  .cal-cell.sel{background:rgba(var(--accent-rgb),.14); border-color:var(--gold);}
   .cal-cell .cal-daynum{font-size:12.5px; color:var(--cream);}
   .cal-cell .cal-sum{font-size:10.5px; color:var(--gold-bright); font-variant-numeric:tabular-nums; line-height:1.3;}
   .cal-cell .cal-cnt{font-size:9.5px; color:var(--muted-2);}
@@ -416,7 +626,7 @@
   .pl-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:4px;}
   .pl-stat{background:var(--card-2); border:1px solid var(--line); border-radius:10px; padding:14px 10px; text-align:center;}
   .pl-stat .pl-label{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
-  .pl-stat .pl-value{font-family:'Noto Serif Thai',serif; font-size:19px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .pl-stat .pl-value{font-family:var(--font-display); font-size:19px; font-weight:600; font-variant-numeric:tabular-nums;}
   @media (max-width:900px){
     .pl-stat{padding:10px 4px;}
     .pl-stat .pl-value{font-size:14.5px;}
@@ -466,6 +676,9 @@
 </style>
 </head>
 <body>
+<div class="theme-fx" id="themeFxBack" aria-hidden="true"></div>
+<div class="theme-art" id="themeArt" aria-hidden="true"></div>
+<div class="theme-fx" id="themeFx" aria-hidden="true"></div>
 <div class="app">
 
   <div class="mobile-topbar" id="mobileTopbar">
@@ -776,7 +989,7 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
               เพิ่มรายการสินค้า
             </button>
-            <div style="text-align:right; color:var(--muted); font-size:13px; margin:-6px 0 14px;">รวมทั้งหมด: <b id="lineItemsTotal" style="color:var(--gold-bright); font-family:'Noto Serif Thai',serif; font-size:16px;">฿0</b></div>
+            <div style="text-align:right; color:var(--muted); font-size:13px; margin:-6px 0 14px;">รวมทั้งหมด: <b id="lineItemsTotal" style="color:var(--gold-bright); font-family:var(--font-display); font-size:16px;">฿0</b></div>
           </div>
 
           <div class="form-actions">
@@ -828,11 +1041,19 @@
 
     <!-- SETTINGS -->
     <section class="view" id="view-settings">
-      <div class="topbar">
+      <div class="topbar settings-home-title">
         <div>
           <h1>ตั้งค่า</h1>
-          <p>ปรับประเภทสินค้า สถานะ หน่วยน้ำหนัก หน้าตาตัวอักษร โลโก้ ชื่อร้าน และการเชื่อมต่อ Google Sheets</p>
         </div>
+      </div>
+      <!-- v7: หน้าแรกของการตั้งค่าเป็นรายการแบ่งหมวด แตะแล้วเข้าไปหน้าย่อย (เนื้อหาหน้าย่อย = กล่องตั้งค่าเดิมทุกอย่าง) -->
+      <div id="settingsHome"></div>
+      <div class="settings-subhead" id="settingsSubHead">
+        <button type="button" class="sub-back" onclick="closeSettingsPage()" aria-label="กลับ">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          <span>ตั้งค่า</span>
+        </button>
+        <h2 id="settingsSubTitle"></h2>
       </div>
 
       <div class="panel" data-panel-id="brand">
@@ -926,7 +1147,7 @@
 
       <div class="panel" data-panel-id="fraud-guide">
         <h3>แนวทางตรวจสอบมิจฉาชีพก่อนรับซื้อ</h3>
-        <p class="hint">ระบบนี้ตรวจได้แค่รายชื่อที่ร้านเพิ่มเองด้านบน + ตรวจรูปแบบเลขบัตรประชาชนว่าถูกต้องตามหลักคณิตศาสตร์เท่านั้น (ไม่ได้ยืนยันตัวตนจริงกับกรมการปกครอง) — <b style="color:#d9b877;">ไม่มีช่องทางที่ร้านค้าทั่วไปจะขอตรวจ "ประวัติอาชญากรรม" ของคนอื่นด้วยเลขบัตรได้เอง</b> การตรวจประวัติอาชญากรรมจริงทำได้ที่กองทะเบียนประวัติอาชญากร สำนักงานตำรวจแห่งชาติ (หรือแอป/เว็บ e-Criminal Record) และ<b style="color:#d9b877;">ต้องเป็นเจ้าของข้อมูลมายื่นขอเอง หรือยินยอมให้บุคคลที่สามขอแทนเท่านั้น</b> ร้านไม่สามารถสั่งตรวจแทนลูกค้าได้โดยพลการ ส่วนการอ้างอิงจากโซเชียลมีเดียก็ไม่ใช่แหล่งข้อมูลที่ยืนยันได้ อาจกล่าวหาคนผิดคนและมีความเสี่ยงเรื่องหมิ่นประมาทได้ จึงไม่แนะนำให้ผูกระบบเข้ากับแหล่งข้อมูลลักษณะนั้น ในทางปฏิบัติร้านส่วนใหญ่ในไทยจึงใช้วิธีตรวจสอบด้วยตัวเอง (ภายนอกระบบนี้) ร่วมกับการบันทึกข้อมูลผู้ขายไว้ให้ครบ ดังนี้:</p>
+        <p class="hint">ระบบนี้ตรวจได้แค่รายชื่อที่ร้านเพิ่มเองด้านบน + ตรวจรูปแบบเลขบัตรประชาชนว่าถูกต้องตามหลักคณิตศาสตร์เท่านั้น (ไม่ได้ยืนยันตัวตนจริงกับกรมการปกครอง) — <b style="color:var(--gold-bright);">ไม่มีช่องทางที่ร้านค้าทั่วไปจะขอตรวจ "ประวัติอาชญากรรม" ของคนอื่นด้วยเลขบัตรได้เอง</b> การตรวจประวัติอาชญากรรมจริงทำได้ที่กองทะเบียนประวัติอาชญากร สำนักงานตำรวจแห่งชาติ (หรือแอป/เว็บ e-Criminal Record) และ<b style="color:var(--gold-bright);">ต้องเป็นเจ้าของข้อมูลมายื่นขอเอง หรือยินยอมให้บุคคลที่สามขอแทนเท่านั้น</b> ร้านไม่สามารถสั่งตรวจแทนลูกค้าได้โดยพลการ ส่วนการอ้างอิงจากโซเชียลมีเดียก็ไม่ใช่แหล่งข้อมูลที่ยืนยันได้ อาจกล่าวหาคนผิดคนและมีความเสี่ยงเรื่องหมิ่นประมาทได้ จึงไม่แนะนำให้ผูกระบบเข้ากับแหล่งข้อมูลลักษณะนั้น ในทางปฏิบัติร้านส่วนใหญ่ในไทยจึงใช้วิธีตรวจสอบด้วยตัวเอง (ภายนอกระบบนี้) ร่วมกับการบันทึกข้อมูลผู้ขายไว้ให้ครบ ดังนี้:</p>
         <ol class="steps">
           <li><b>ขอดูบัตรประชาชนตัวจริง</b> เทียบหน้าคนขายกับรูปในบัตรทุกครั้ง แล้วถ่ายรูปเก็บไว้ในรายการ (ใช้ปุ่มแนบรูปในฟอร์มได้)</li>
           <li><b>ตรวจเบอร์โทร</b> ผ่านแอป Whoscall หรือค้นเบอร์ในเว็บ blacklistseller.com ว่าเคยถูกรายงานเป็นมิจฉาชีพ/บัญชีม้าหรือไม่</li>
@@ -944,7 +1165,7 @@
           <label>สีตัวอักษรหลัก</label>
           <div class="swatch-row">
             <input type="color" id="fontColorPicker" style="width:44px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--line);background:transparent;">
-            <span style="color:var(--muted); font-size:12.5px;">เลือกสีที่อ่านง่ายบนพื้นหลังสีเข้ม</span>
+            <span style="color:var(--muted); font-size:12.5px;">ปกติใช้สีตามธีม (อ่านง่ายที่สุด) — เปลี่ยนเฉพาะเมื่อจำเป็น</span>
           </div>
         </div>
         <div class="field">
@@ -961,31 +1182,42 @@
       </div>
 
       <div class="panel" data-panel-id="theme">
-        <h3>ธีมพื้นหลัง (เอกลักษณ์ร้าน)</h3>
-        <p class="hint">ปรับสีพื้นหลังหรืออัปโหลดรูปพื้นหลังของตัวเอง เพื่อให้แต่ละร้านมีหน้าตาที่เป็นเอกลักษณ์ของตัวเองในอนาคต — ใช่ ทำได้ทั้งสองแบบ</p>
-        <div class="field" style="margin-bottom:14px;">
-          <label>สีพื้นหลัง</label>
-          <div class="swatch-row">
-            <input type="color" id="themeBgColor" style="width:44px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--line);background:transparent;">
-            <button class="btn btn-sm" onclick="clearThemeColor()">ใช้สีเริ่มต้น</button>
-          </div>
+        <h3>ธีม</h3>
+        <p class="hint">แตะธีมเพื่อดูตัวอย่างทั้งแอปทันที ถ้าชอบกด "ใช้ธีมนี้" — ยังไม่กดบันทึก = ยังไม่เปลี่ยนจริง</p>
+        <label class="motion-toggle"><input type="checkbox" id="motionToggle" onchange="setMotion(this.checked)"> ภาพเคลื่อนไหว (ปิดได้ถ้าอยากประหยัดแบตเตอรี่)</label>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div class="theme-actions" id="themeActions">
+          <span class="ta-text">กำลังดูตัวอย่าง</span>
+          <button type="button" class="btn btn-primary" onclick="saveThemePreset()">ใช้ธีมนี้</button>
+          <button type="button" class="btn" onclick="cancelThemePreview()">ยกเลิก</button>
         </div>
-        <div class="field">
-          <label>รูปพื้นหลังของร้าน (ไม่บังคับ — ถ้าอัปโหลดจะซ้อนทับสีด้านบน)</label>
-          <div class="logo-row">
-            <img class="bg-thumb" id="themeBgPreview" src="" style="display:none;">
-            <div style="flex:1; min-width:220px;">
-              <input type="file" id="themeBgFile" accept="image/*" style="margin-bottom:10px;">
-              <button class="btn btn-sm" onclick="clearThemeImage()">ลบรูปพื้นหลัง</button>
+        <details class="theme-advanced">
+          <summary>ปรับแต่งเพิ่มเติม: สี/รูปพื้นหลังของร้านเอง</summary>
+          <p class="hint" style="margin-top:10px;">ใช้ทับพื้นหลังของธีมที่เลือกอยู่ — ถ้าไม่ต้องการแล้วกด "ใช้สีเริ่มต้น" และ "ลบรูปพื้นหลัง" แล้วบันทึก</p>
+          <div class="field" style="margin-bottom:14px;">
+            <label>สีพื้นหลัง</label>
+            <div class="swatch-row">
+              <input type="color" id="themeBgColor" style="width:44px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--line);background:transparent;">
+              <button class="btn btn-sm" onclick="clearThemeColor()">ใช้สีเริ่มต้น</button>
             </div>
           </div>
-        </div>
-        <button class="btn btn-primary" style="margin-top:14px;" onclick="saveTheme()">บันทึกธีม</button>
+          <div class="field">
+            <label>รูปพื้นหลังของร้าน (ไม่บังคับ)</label>
+            <div class="logo-row">
+              <img class="bg-thumb" id="themeBgPreview" src="" style="display:none;">
+              <div style="flex:1; min-width:220px;">
+                <input type="file" id="themeBgFile" accept="image/*" style="margin-bottom:10px;">
+                <button class="btn btn-sm" onclick="clearThemeImage()">ลบรูปพื้นหลัง</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:14px;" onclick="saveTheme()">บันทึกพื้นหลัง</button>
+        </details>
       </div>
 
       <div class="panel" data-panel-id="template">
         <h3>แม่แบบการตั้งค่า (สำหรับส่งต่อให้แอดมิน)</h3>
-        <p class="hint">กดบันทึกไว้เมื่อเจ้าของร้านจัดรูปแบบประเภทสินค้า สถานะ หน่วยน้ำหนัก สาขา ตัวอักษร โลโก้ และธีมเรียบร้อยแล้ว แล้วส่งไฟล์นี้ให้แอดมิน/พนักงานใช้แทน — แอดมินกดนำเข้าไฟล์นี้ครั้งเดียว ก็ได้รูปแบบฟอร์มเดียวกันทันที ไม่ต้องตั้งค่าใหม่เอง (ไฟล์นี้ <b style="color:#d9b877;">ไม่มี</b> ข้อมูลรายการซื้อขายหรือลูกค้าอยู่ด้วย ปลอดภัยที่จะส่งให้พนักงานได้)</p>
+        <p class="hint">กดบันทึกไว้เมื่อเจ้าของร้านจัดรูปแบบประเภทสินค้า สถานะ หน่วยน้ำหนัก สาขา ตัวอักษร โลโก้ และธีมเรียบร้อยแล้ว แล้วส่งไฟล์นี้ให้แอดมิน/พนักงานใช้แทน — แอดมินกดนำเข้าไฟล์นี้ครั้งเดียว ก็ได้รูปแบบฟอร์มเดียวกันทันที ไม่ต้องตั้งค่าใหม่เอง (ไฟล์นี้ <b style="color:var(--gold-bright);">ไม่มี</b> ข้อมูลรายการซื้อขายหรือลูกค้าอยู่ด้วย ปลอดภัยที่จะส่งให้พนักงานได้)</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <button class="btn btn-primary btn-sm" onclick="exportFieldTemplate()">⬇ บันทึกแม่แบบการตั้งค่า (.json)</button>
           <label class="btn btn-sm upload-btn">📤 นำเข้าแม่แบบการตั้งค่า
@@ -997,7 +1229,7 @@
       <div class="panel" data-panel-id="types">
         <h3>ประเภทสินค้า</h3>
         <p class="hint">ใช้ในหน้า "เพิ่มรายการ" หน้า "รายการทั้งหมด" และแถบสรุปในแดชบอร์ด</p>
-        <div class="impact-note">⚠ การแก้ชื่อหรือลบประเภท <b style="color:#d9b877;">มีผลกับรายการที่เพิ่มใหม่เท่านั้น</b> — รายการเก่าที่เคยบันทึกไว้จะยังคงข้อมูลเดิมทุกตัวอักษร แต่ถ้าชื่อประเภทของรายการเก่าไม่ตรงกับรายการในลิสต์ปัจจุบันแล้ว ระบบจะไม่รู้ว่าจะให้สีอะไร จึงจะไปรวมแสดงเป็นแถบ "อื่นๆ" สีเทาในแดชบอร์ดแทน ไม่ได้แปลว่าข้อมูลหาย</div>
+        <div class="impact-note">⚠ การแก้ชื่อหรือลบประเภท <b style="color:var(--gold-bright);">มีผลกับรายการที่เพิ่มใหม่เท่านั้น</b> — รายการเก่าที่เคยบันทึกไว้จะยังคงข้อมูลเดิมทุกตัวอักษร แต่ถ้าชื่อประเภทของรายการเก่าไม่ตรงกับรายการในลิสต์ปัจจุบันแล้ว ระบบจะไม่รู้ว่าจะให้สีอะไร จึงจะไปรวมแสดงเป็นแถบ "อื่นๆ" สีเทาในแดชบอร์ดแทน ไม่ได้แปลว่าข้อมูลหาย</div>
         <div class="cfg-list" id="typeCfgList"></div>
         <div class="cfg-add">
           <input type="text" id="newTypeEmoji" placeholder="ไอคอน เช่น ⌚" maxlength="4" style="flex:none; width:56px; text-align:center;">
@@ -1083,6 +1315,48 @@
         <h3>ไฟล์ Apps Script</h3>
         <p class="hint">โค้ดนี้ต้องวางใน Google Apps Script ของ Sheet (ดูขั้นตอนด้านบน) — ไฟล์แยกต่างหากชื่อ <code>apps-script.gs</code> ถูกส่งมาพร้อมกันแล้ว</p>
         <pre id="gsPreview">กำลังโหลด...</pre>
+      </div>
+
+      <div class="panel" data-panel-id="iconpack">
+        <h3>ชุดไอคอนสินค้า</h3>
+        <p class="hint">เลือกหน้าตาไอคอนของประเภทสินค้า ใช้ในหน้าเพิ่มรายการ ตาราง และแดชบอร์ด — ถ้าอยากใช้รูปของร้านเองเฉพาะบางประเภท อัปโหลดได้ที่ ตั้งค่า → ประเภทสินค้า (ปุ่ม 🖼)</p>
+        <div class="iconpack-grid" id="iconPackGrid"></div>
+      </div>
+
+      <div class="panel" data-panel-id="appicon">
+        <h3>ไอคอนแอป</h3>
+        <p class="hint">ไอคอนที่จะแสดงบนหน้าจอมือถือเมื่อติดตั้งเป็นแอป — เลือกแบบสำเร็จรูป ใช้โลโก้ร้าน (ตั้งที่ "โลโก้และชื่อร้าน") หรืออัปโหลดรูปเอง (รูปสี่เหลี่ยมจัตุรัสจะสวยที่สุด)</p>
+        <div class="appicon-grid" id="appIconGrid"></div>
+        <label class="btn btn-sm upload-btn">📤 อัปโหลดรูปไอคอนเอง
+          <input type="file" accept="image/*" id="appIconFile">
+        </label>
+        <div class="impact-note" style="margin-top:14px;"><span>⚠ เลือกไอคอน<b>ก่อน</b>กดติดตั้งแอป — มือถือ (ทั้ง iPhone และ Android) จะจำไอคอน ณ ตอนติดตั้ง ถ้าติดตั้งไปแล้วอยากเปลี่ยน ให้กดค้างที่ไอคอนเดิมบนหน้าจอ → ลบ แล้วติดตั้งใหม่ (ข้อมูลไม่หาย เพราะอยู่ใน Google Sheet)</span></div>
+      </div>
+
+      <div class="panel" data-panel-id="install">
+        <h3>ติดตั้งเป็นแอปบนมือถือ</h3>
+        <p class="hint" id="installStatus">—</p>
+        <button type="button" class="btn btn-primary" id="installBtn" style="display:none; margin-bottom:14px;" onclick="promptInstallApp()">📲 ติดตั้งแอปบนเครื่องนี้</button>
+        <div class="install-guide">
+          <div class="install-col">
+            <b>Android (Chrome)</b>
+            <ol class="steps">
+              <li>เปิดลิงก์ระบบใน <b>Chrome</b></li>
+              <li>กดปุ่ม "ติดตั้งแอป" ด้านบน หรือเมนู <b>⋮</b> → <b>ติดตั้งแอป / เพิ่มลงในหน้าจอหลัก</b></li>
+              <li>ไอคอน ณ.นนท์ จะอยู่บนหน้าจอ เปิดแล้วเต็มจอเหมือนแอปทั่วไป</li>
+            </ol>
+          </div>
+          <div class="install-col">
+            <b>iPhone (Safari)</b>
+            <ol class="steps">
+              <li>เปิดลิงก์ระบบใน <b>Safari</b> (ต้องเป็น Safari เท่านั้น)</li>
+              <li>กดปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น) → <b>เพิ่มไปยังหน้าจอโฮม</b></li>
+              <li>เปิดแอปครั้งแรก ให้เข้า ตั้งค่า → Google Sheets ใส่ URL และรหัสลับเดิม 1 ครั้ง (iPhone เก็บข้อมูลแอปแยกจาก Safari)</li>
+            </ol>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:12px;">อัปเดตระบบทีหลัง (อัปโหลดไฟล์ใหม่ขึ้น GitHub) แอปที่ติดตั้งไว้จะได้เวอร์ชันใหม่เองเมื่อเปิดตอนมีเน็ต ไม่ต้องติดตั้งใหม่</p>
+        <p class="hint" style="margin:0;">เวอร์ชันระบบ: <b id="appVersionLabel"></b></p>
       </div>
     </section>
 
@@ -1247,7 +1521,7 @@ const DEFAULT_STATUSES = [
 ];
 const DEFAULT_WEIGHT_UNITS = ['กรัม','บาท','กะรัต','สลึง','ชั่ง','ไม่ระบุ'];
 const DEFAULT_TITLES = ['นาย','นาง','นางสาว','ไม่ระบุ'];
-const DEFAULT_FONT = {color:'#f2e9d8', size:100};
+const DEFAULT_FONT = {color:'', size:100}; // v7: color '' = ใช้สีตัวอักษรของธีม
 const DEFAULT_BRAND = {name:'ณ.นนท์', sub:'รับซื้อตั๋วจำนำ · หลอมทอง', logo:''};
 const DEFAULT_THEME = {bgColor:'', bgImage:''};
 /* ---------- คำที่แสดงในระบบ ปรับได้เองในหน้าตั้งค่า (data-panel-id="labels") โดยไม่ต้องแก้โค้ด
@@ -1342,6 +1616,7 @@ let TYPES = loadJSON(LS_TYPES, DEFAULT_TYPES);
 let STATUSES = loadJSON(LS_STATUSES, DEFAULT_STATUSES);
 let WEIGHT_UNITS = loadJSON(LS_WEIGHT_UNITS, DEFAULT_WEIGHT_UNITS);
 let FONT = loadJSON(LS_FONT, DEFAULT_FONT);
+if(FONT.color && FONT.color.toLowerCase()==='#f2e9d8') FONT.color = ''; // สีเริ่มต้นเดิม = ให้ใช้สีของธีมแทน
 let BRAND = loadJSON(LS_BRAND, DEFAULT_BRAND);
 let CUSTOMERS = loadJSON(LS_CUSTOMERS, []);
 let WATCHLIST = loadJSON(LS_WATCHLIST, []);
@@ -1505,6 +1780,10 @@ const VALID_VIEWS = ['dashboard','overview','add','list','settings'];
 function goTo(view){
   if(!VALID_VIEWS.includes(view)) view = 'dashboard';
   if(typeof clearBulkSelection==='function') clearBulkSelection(true);
+  if(typeof resetSettingsNav==='function'){
+    resetSettingsNav();
+    try{ if(history.state && history.state.settingsPage) history.replaceState(null, ''); }catch(e){}
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const el = document.getElementById('view-'+view);
   if(el) el.classList.add('active'); else document.getElementById('view-dashboard').classList.add('active');
@@ -1742,7 +2021,7 @@ function renderDashboard(){
   bars.innerHTML = totals.length ? totals.map(t=>{
     const pct = Math.round((t.sum/max)*100);
     return `<div class="type-row">
-      <div class="tname">${t.name}</div>
+      <div class="tname">${typeIconHTML(t.name)}${t.name}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${t.color};"></div></div>
       <div class="tval">${fmtMoney(t.sum)}</div>
     </div>`;
@@ -1845,7 +2124,7 @@ function calSelectDate(iso){
     return `<tr>
       <td class="cb-col"><input type="checkbox" class="bulk-cb" data-ids="${escAttr(t.id)}" ${BULK_SELECTED.has(t.id)?'checked':''}></td>
       <td>${t.seq?('#'+String(t.seq).padStart(4,'0')):'—'}</td>
-      <td><span class="tag" style="${tagStyle(tCfg&&tCfg.color)}">${t.type}</span></td>
+      <td><span class="tag" style="${tagStyle(tCfg&&tCfg.color)}">${typeIconHTML(t.type)}${t.type}</span></td>
       <td>${t.customer||'—'}${t.vip?' ⭐':''}</td>
       <td>${fmtMoney(t.price)}</td>
       <td><span class="status"><span class="dot" style="background:${sCfg?sCfg.color:FALLBACK_COLOR}"></span>${t.status}</span></td>
@@ -2050,7 +2329,7 @@ function renderLineItems(){
         <div class="field full">
           <label>ประเภทสินค้า <span class="req">*</span></label>
           <div class="type-picker li-type-picker" data-uid="${li.uid}">
-            ${TYPES.map(t=>`<div class="type-opt${t.name===li.type?' sel':''}" data-type="${escAttr(t.name)}" style="${t.name===li.type?('border-color:'+t.color+';color:'+t.color+';'):''}">${t.emoji||'•'} ${t.name}</div>`).join('')}
+            ${TYPES.map(t=>`<div class="type-opt${t.name===li.type?' sel':''}" data-type="${escAttr(t.name)}" style="${t.name===li.type?('border-color:'+t.color+';color:'+t.color+';'):''}">${typeIconHTML(t.name)} ${t.name}</div>`).join('')}
           </div>
         </div>
         <div class="field full">
@@ -2296,7 +2575,7 @@ function itemRowHtml(t, nested){
       <td>${t.seq ? ('#' + String(t.seq).padStart(4,'0')) : '—'}</td>
       <td>${fmtDate(t.date)}</td>
       <td>${t.branch||'—'}</td>
-      <td><span class="tag" style="${tagStyle(tCfg&&tCfg.color)}">${t.type}</span></td>
+      <td><span class="tag" style="${tagStyle(tCfg&&tCfg.color)}">${typeIconHTML(t.type)}${t.type}</span></td>
       <td>${t.details||'—'}</td>
       <td>${t.weight||'—'}</td>
       <td>${fmtMoney(t.price)}</td>
@@ -2686,113 +2965,600 @@ function renderSettings(){
   renderThemeForm();
   document.getElementById('deviceNameInput').value = getDeviceName();
   renderPresence();
-  setupSettingsPanels();
+  renderSettingsHome();
 }
 
-/* ---------- Settings: collapsible sections + drag-to-reorder (like Google Forms) ---------- */
-let settingsPanelsWired = false;
-let draggedPanelId = null;
-function getSettingsOrder(){
-  const container = document.getElementById('view-settings');
-  const all = Array.from(container.querySelectorAll(':scope > .panel[data-panel-id]')).map(p=>p.dataset.panelId);
-  const saved = loadJSON(LS_SETTINGS_ORDER, []);
-  const order = saved.filter(id=>all.includes(id));
-  all.forEach(id=>{ if(!order.includes(id)) order.push(id); });
-  return order;
+/* ================= v7: SETTINGS HOME (grouped list → sub-pages) =================
+   หน้าตั้งค่าเป็นรายการแบ่งหมวด แตะแถวไหน = เปิดกล่องตั้งค่าเดิม (data-panel-id เดียวกัน) เป็นหน้าย่อย
+   เพิ่มเมนูใหม่ในอนาคต: เพิ่ม <div class="panel" data-panel-id="..."> ใน HTML + เพิ่ม 1 แถวใน SETTINGS_MENU */
+const S_ICONS = {
+  palette:'<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 2.5a9.5 9.5 0 0 0 0 19c1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.5-1.2-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.9a5.3 5.3 0 0 0 5.3-5.3C21.5 6.3 17.2 2.5 12 2.5z"/>',
+  store:'<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5h16v1a2.7 2.7 0 0 1-5.3 0 2.7 2.7 0 0 1-5.4 0 2.7 2.7 0 0 1-5.3 0z"/><path d="M5.5 13v7h13v-7"/><path d="M10 20v-4.5h4V20"/>',
+  type:'<path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/>',
+  pen:'<path d="M12 20h8"/><path d="M16.5 3.6a2.1 2.1 0 0 1 3 3L7.5 18.6 3.5 19.5l.9-4z"/>',
+  tag:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m8 12.2 2.8 2.8 5.2-6"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/>',
+  scale:'<path d="M12 4v16"/><path d="M6 20h12"/><path d="M5 7h14"/><path d="m7 7-3 6.5a3 3 0 0 0 6 0z"/><path d="m17 7-3 6.5a3 3 0 0 0 6 0z"/>',
+  pin:'<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5.5 15H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v.5"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>',
+  shield:'<path d="M12 3 19.5 6v5.5c0 4.7-3.2 7.9-7.5 9.5-4.3-1.6-7.5-4.8-7.5-9.5V6z"/><path d="M12 8.5v4.5"/><path d="M12 16.2h.01"/>',
+  book:'<path d="M5 19V5.5A2.5 2.5 0 0 1 7.5 3H19v14H7.5A2.5 2.5 0 0 0 5 19.5 2.5 2.5 0 0 0 7.5 22H19v-5"/>',
+  cloud:'<path d="M17.5 19H7.5a4.5 4.5 0 1 1 1-8.9A6 6 0 0 1 19.3 11a4 4 0 0 1-1.8 8z"/>',
+  users:'<circle cx="9" cy="8.5" r="3.5"/><path d="M3 20c0-3.4 2.7-5.8 6-5.8s6 2.4 6 5.8"/><path d="M16 5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2 .7 3.2 2.6 3.2 5.5"/>',
+  download:'<path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5 4.5-4.5"/><path d="M5 20.5h14"/>',
+  code:'<path d="m8.5 6.5-5.5 5.5 5.5 5.5"/><path d="m15.5 6.5 5.5 5.5-5.5 5.5"/>',
+  phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/>',
+  apps:'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  gem:'<path d="M6.5 4h11L21 9.5 12 20.5 3 9.5z"/><path d="M3 9.5h18"/><path d="m9.5 4-1.5 5.5 4 11 4-11L14.5 4"/>'
+};
+function sIcon(name){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${S_ICONS[name]||''}</svg>`; }
+const FONT_SIZE_LABELS = {90:'เล็ก', 100:'ปกติ', 115:'ใหญ่', 130:'ใหญ่มาก'};
+const SETTINGS_MENU = [
+  { title:'หน้าตาและร้าน', items:[
+    {id:'theme', label:'ธีม', icon:'palette', color:'#b8892b', sub:()=>findPreset(THEME.preset).name},
+    {id:'brand', label:'โลโก้และชื่อร้าน', icon:'store', color:'#c2643a', sub:()=>BRAND.name},
+    {id:'iconpack', label:'ชุดไอคอนสินค้า', icon:'gem', color:'#c27c2c', sub:()=>(ICON_PACKS.find(p=>p.id===ICON_PACK)||{}).name},
+    {id:'font', label:'ตัวอักษร', icon:'type', color:'#5c6bc0', sub:()=>'ขนาด' + (FONT_SIZE_LABELS[FONT.size]||'ปกติ')},
+    {id:'labels', label:'ปรับคำที่แสดงในระบบ', icon:'pen', color:'#7e57c2', sub:()=>'"' + LABELS.cost + '"'}
+  ]},
+  { title:'ข้อมูลสินค้าและฟอร์ม', items:[
+    {id:'types', label:'ประเภทสินค้า', icon:'tag', color:'#c9971c', sub:()=>TYPES.length + ' ประเภท'},
+    {id:'statuses', label:'สถานะ', icon:'check', color:'#2e9d6a', sub:()=>STATUSES.map(s=>s.name).join(' · ')},
+    {id:'titles', label:'คำนำหน้าชื่อลูกค้า', icon:'user', color:'#3b82c4', sub:()=>TITLES.join(' · ')},
+    {id:'weights', label:'หน่วยน้ำหนัก', icon:'scale', color:'#8a6d3b', sub:()=>WEIGHT_UNITS.join(' · ')},
+    {id:'branches', label:'สาขา', icon:'pin', color:'#d0533f', sub:()=>BRANCHES.length + ' สาขา'},
+    {id:'template', label:'แม่แบบการตั้งค่า (ส่งต่อแอดมิน)', icon:'copy', color:'#607d8b'}
+  ]},
+  { title:'ความปลอดภัย', items:[
+    {id:'pin', label:'ล็อก PIN', icon:'lock', color:'#34a853', sub:()=> getPin() ? 'เปิดอยู่' : 'ปิดอยู่'},
+    {id:'watchlist', label:'รายชื่อเฝ้าระวัง', icon:'shield', color:'#c0392b', sub:()=>WATCHLIST.length + ' รายชื่อ'},
+    {id:'fraud-guide', label:'แนวทางตรวจสอบมิจฉาชีพ', icon:'book', color:'#e67e22'}
+  ]},
+  { title:'ข้อมูลและการซิงก์', items:[
+    {id:'sheets', label:'Google Sheets', icon:'cloud', color:'#1a73e8', sub:()=> loadJSONsheetUrl() ? 'เชื่อมต่อแล้ว' : 'ยังไม่เชื่อมต่อ'},
+    {id:'presence', label:'ใครออนไลน์อยู่', icon:'users', color:'#00897b', sub:()=> getDeviceName() ? ('เครื่องนี้: ' + getDeviceName()) : 'ยังไม่ได้ตั้งชื่อเครื่องนี้'},
+    {id:'backup', label:'สำรองและกู้คืนข้อมูล', icon:'download', color:'#3949ab'},
+    {id:'appsscript', label:'ไฟล์ Apps Script', icon:'code', color:'#546e7a'}
+  ]},
+  { title:'แอป', items:[
+    {id:'appicon', label:'ไอคอนแอป', icon:'apps', color:'#1f6f63', sub:()=>appIconLabel()},
+    {id:'install', label:'ติดตั้งเป็นแอปบนมือถือ', icon:'phone', color:'#b8892b', sub:()=> isStandaloneApp() ? 'ติดตั้งแล้ว' : 'เพิ่มไอคอนบนหน้าจอ'}
+  ]}
+];
+function findSettingsItem(id){ for(const g of SETTINGS_MENU){ const it = g.items.find(i=>i.id===id); if(it) return it; } return null; }
+function renderSettingsHome(){
+  const home = document.getElementById('settingsHome');
+  if(!home) return;
+  home.innerHTML = SETTINGS_MENU.map(g=>`
+    <div class="settings-group-title">${g.title}</div>
+    <div class="settings-group">
+      ${g.items.filter(it=>document.querySelector(`#view-settings > .panel[data-panel-id="${it.id}"]`)).map(it=>{
+        let sub = ''; try{ sub = it.sub ? it.sub() : ''; }catch(e){ sub = ''; }
+        return `<button type="button" class="settings-row" onclick="openSettingsPage('${it.id}')">
+          <span class="s-icon" style="background:${it.color};">${sIcon(it.icon)}</span>
+          <span class="s-text"><span class="s-label">${it.label}</span>${sub?`<span class="s-sub" style="display:block;">${escAttr(sub)}</span>`:''}</span>
+          <svg class="s-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+        </button>`;
+      }).join('')}
+    </div>`).join('');
 }
-function applySettingsOrder(){
-  const container = document.getElementById('view-settings');
-  const topbar = container.querySelector('.topbar');
-  const order = getSettingsOrder();
-  order.forEach(id=>{
-    const panel = container.querySelector(`:scope > .panel[data-panel-id="${id}"]`);
-    if(panel) container.appendChild(panel);
+function openSettingsPage(id){
+  const view = document.getElementById('view-settings');
+  const panel = view.querySelector(`:scope > .panel[data-panel-id="${id}"]`);
+  if(!panel) return;
+  view.querySelectorAll(':scope > .panel.page-active').forEach(p=>p.classList.remove('page-active'));
+  panel.classList.add('page-active');
+  view.classList.add('sub-open');
+  const it = findSettingsItem(id);
+  const h3 = panel.querySelector(':scope > h3');
+  document.getElementById('settingsSubTitle').textContent = it ? it.label : (h3 ? h3.textContent : '');
+  if(id==='theme'){ renderThemePicker(); renderThemeForm(); }
+  if(id==='presence') renderPresence();
+  if(id==='install') renderInstallPanel();
+  if(id==='iconpack') renderIconPackPicker();
+  if(id==='appicon') renderAppIconPicker();
+  try{ history.pushState({settingsPage:id}, ''); }catch(e){}
+  window.scrollTo(0,0);
+}
+function resetSettingsNav(){
+  if(themePreviewId) cancelThemePreview(); // ออกจากหน้าธีมโดยไม่กดบันทึก = กลับเป็นธีมเดิม
+  const view = document.getElementById('view-settings');
+  if(!view) return;
+  view.classList.remove('sub-open');
+  view.querySelectorAll(':scope > .panel.page-active').forEach(p=>p.classList.remove('page-active'));
+}
+function closeSettingsPage(){
+  // ปุ่ม "‹ ตั้งค่า" ทำงานเหมือนปุ่มย้อนกลับของมือถือ
+  if(history.state && history.state.settingsPage){ history.back(); return; }
+  resetSettingsNav(); renderSettingsHome(); window.scrollTo(0,0);
+}
+window.addEventListener('popstate', function(){
+  const view = document.getElementById('view-settings');
+  if(view && view.classList.contains('sub-open')){ resetSettingsNav(); renderSettingsHome(); window.scrollTo(0,0); }
+});
+
+/* ================= v8: ชุดไอคอนสินค้า (เหมือน "ชุดอีโมติคอน" ในแอปไดอารี่) =================
+   ไอคอนเลือกอัตโนมัติจากชื่อประเภท (เช่น มีคำว่า "เพชร" = ไอคอนเพชร) ประเภทที่ร้านเพิ่มเองก็ได้ไอคอนที่เข้ากัน
+   เพิ่มชุดไอคอนใหม่ในอนาคต: เพิ่ม 1 ก้อนใน ICON_PACKS + เพิ่มรูปแบบใน typeIconHTML()
+   เพิ่มสัญลักษณ์ใหม่: เพิ่มใน TYPE_ICON_PATHS + เพิ่มคำค้นใน typeIconKey() */
+const LS_ICONPACK = 'nanon_iconpack_v1';
+const ICON_PACKS = [
+  {id:'gold-coin', name:'เหรียญทอง', desc:'สัญลักษณ์บนเหรียญทอง ดูหรู (ค่าเริ่มต้น)'},
+  {id:'gold-line', name:'เส้นทองมินิมอล', desc:'เส้นบาง เรียบ สะอาดตา'},
+  {id:'tint', name:'สีตามประเภท', desc:'กรอบสีตามสีที่ตั้งให้แต่ละประเภท'},
+  {id:'emoji', name:'อีโมจิ', desc:'แบบเดิม ใช้อีโมจิที่ตั้งไว้ในประเภทสินค้า'}
+];
+let ICON_PACK = (function(){ try{ return localStorage.getItem(LS_ICONPACK) || 'gold-coin'; }catch(e){ return 'gold-coin'; } })();
+const TYPE_ICON_PATHS = {
+  gold:'<path d="M2.5 19.5h19l-2.6-6H5.1z"/><path d="M7 13.5 9 8h6l2 5.5"/><path d="M9.5 8l1.2-3h2.6l1.2 3"/>',
+  diamond:'<path d="M6.5 4h11L21 9.5 12 20.5 3 9.5z"/><path d="M3 9.5h18"/><path d="m9.5 4-1.5 5.5 4 11 4-11L14.5 4"/>',
+  silver:'<ellipse cx="12" cy="6.5" rx="7" ry="2.6"/><path d="M5 6.5v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4"/><path d="M5 10.5v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4"/><path d="M5 14.5v3c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-3"/>',
+  ring:'<circle cx="12" cy="14.5" r="6"/><path d="m9 8.6 1.4-3.1h3.2L15 8.6"/><path d="M10.4 5.5 12 8.5l1.6-3"/>',
+  ticket:'<path d="M3.5 7.5a1.5 1.5 0 0 0 1.5-1.5h14a1.5 1.5 0 0 0 1.5 1.5v2.5a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 0-1.5 1.5H5a1.5 1.5 0 0 0-1.5-1.5V14a2 2 0 0 0 0-4z"/><path d="M14.5 6.5v11" stroke-dasharray="1.8 2"/><path d="M7.5 10h4"/><path d="M7.5 13.5h3"/>',
+  watch:'<circle cx="12" cy="12" r="5.5"/><path d="M12 9.5V12l1.6 1.4"/><path d="M9 6.8 9.6 3h4.8l.6 3.8"/><path d="m9 17.2.6 3.8h4.8l.6-3.8"/>',
+  amulet:'<path d="M8.5 3.5 12 7l3.5-3.5"/><rect x="7" y="7.5" width="10" height="13" rx="5"/><path d="M12 11v5.5"/><path d="M10 13.5h4"/>',
+  necklace:'<path d="M4.5 4c0 6.5 3.4 10.5 7.5 10.5S19.5 10.5 19.5 4"/><path d="m12 14.5 0 1.5"/><path d="m9.8 18.2 2.2-2.2 2.2 2.2-2.2 3z"/>',
+  phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.3"/><path d="M11 18.3h2"/>',
+  bag:'<path d="M5 8.5h14l-1.2 12H6.2z"/><path d="M9 8.5V6.5a3 3 0 0 1 6 0v2"/>',
+  tag:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'
+};
+function typeIconKey(name){
+  const n = String(name||'');
+  if(/นาก/.test(n)) return 'ring';
+  if(/ตั๋ว|จำนำ/.test(n)) return 'ticket';
+  if(/เพชร|พลอย|อัญมณี|ทับทิม|มรกต/.test(n)) return 'diamond';
+  if(/นาฬิกา/.test(n)) return 'watch';
+  if(/พระ|เครื่องราง|ตะกรุด/.test(n)) return 'amulet';
+  if(/สร้อย|จี้/.test(n)) return 'necklace';
+  if(/แหวน/.test(n)) return 'ring';
+  if(/ทอง/.test(n)) return 'gold';
+  if(/เงิน|เหรียญ/.test(n)) return 'silver';
+  if(/มือถือ|โทรศัพท์|ไอแพด|แท็บเล็ต/.test(n)) return 'phone';
+  if(/กระเป๋า|แบรนด์เนม/.test(n)) return 'bag';
+  return 'tag';
+}
+function typeIconHTML(typeName, packOverride){
+  const t = findType(typeName) || {name:typeName, color:FALLBACK_COLOR, emoji:'•'};
+  if(t.img) return `<span class="ticon ticon-img"><img src="${t.img}" alt=""></span>`;
+  const pack = packOverride || ICON_PACK;
+  if(pack === 'emoji') return `<span class="ticon ticon-emoji">${t.emoji || '•'}</span>`;
+  const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${TYPE_ICON_PATHS[typeIconKey(t.name)]}</svg>`;
+  if(pack === 'gold-coin') return `<span class="ticon ticon-coin">${svg}</span>`;
+  if(pack === 'tint'){ const c = t.color || FALLBACK_COLOR; return `<span class="ticon ticon-tint" style="color:${c};background:${hexToRgba(c,.16)};border-color:${hexToRgba(c,.5)}">${svg}</span>`; }
+  return `<span class="ticon ticon-line">${svg}</span>`;
+}
+function renderIconPackPicker(){
+  const grid = document.getElementById('iconPackGrid');
+  if(!grid) return;
+  const sample = TYPES.slice(0, 8);
+  grid.innerHTML = ICON_PACKS.map(pk=>`
+    <button type="button" class="iconpack-card${pk.id===ICON_PACK?' sel':''}" onclick="chooseIconPack('${pk.id}')">
+      <div class="ip-head"><span class="ip-name">${pk.name}${pk.id===ICON_PACK?' <span class="tc-current">ใช้อยู่</span>':''}</span><span class="ip-desc">${pk.desc}</span></div>
+      <div class="ip-icons">${sample.map(t=>`<div class="ip-cell">${typeIconHTML(t.name, pk.id)}<span>${t.name}</span></div>`).join('')}</div>
+    </button>`).join('');
+}
+function chooseIconPack(id){
+  ICON_PACK = id;
+  try{ localStorage.setItem(LS_ICONPACK, id); }catch(e){}
+  renderIconPackPicker();
+  toast('เปลี่ยนชุดไอคอนเป็น "' + (ICON_PACKS.find(p=>p.id===id)||{}).name + '" แล้ว');
+}
+function resizeImageToDataURL(file, size, mime, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const c = document.createElement('canvas'); c.width = c.height = size;
+        const side = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width-side)/2, (img.height-side)/2, side, side, 0, 0, size, size);
+        resolve(c.toDataURL(mime || 'image/png', quality));
+      };
+      img.onerror = reject; img.src = ev.target.result;
+    };
+    reader.onerror = reject; reader.readAsDataURL(file);
   });
-  if(topbar) container.insertBefore(topbar, container.firstChild);
 }
-function toggleSettingsPanel(headEl){
-  const panel = headEl.closest('.panel');
-  panel.classList.toggle('collapsed');
-  const collapsed = loadJSON(LS_SETTINGS_COLLAPSED, []);
-  const id = panel.dataset.panelId;
-  const idx = collapsed.indexOf(id);
-  if(panel.classList.contains('collapsed')){ if(idx<0) collapsed.push(id); }
-  else { if(idx>=0) collapsed.splice(idx,1); }
-  saveJSON(LS_SETTINGS_COLLAPSED, collapsed);
+async function uploadTypeImage(i, input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  try{
+    TYPES[i].img = await resizeImageToDataURL(file, 96, 'image/png');
+    saveJSON(LS_TYPES, TYPES); renderTypeCfg();
+    toast('ใช้รูปนี้เป็นไอคอนของ "' + TYPES[i].name + '" แล้ว');
+  }catch(e){ toast('อ่านรูปไม่สำเร็จ ลองรูปอื่น'); }
 }
-function moveSettingsPanel(id, dir){
-  const order = getSettingsOrder();
-  const i = order.indexOf(id);
-  const j = i + dir;
-  if(j<0 || j>=order.length) return;
-  [order[i], order[j]] = [order[j], order[i]];
-  saveJSON(LS_SETTINGS_ORDER, order);
-  renderSettings();
-}
-function setupSettingsPanels(){
-  const container = document.getElementById('view-settings');
-  const panels = Array.from(container.querySelectorAll(':scope > .panel[data-panel-id]'));
-  const collapsedIds = loadJSON(LS_SETTINGS_COLLAPSED, []);
-  panels.forEach(panel=>{
-    if(!panel.classList.contains('collapsible')){
-      const h3 = panel.querySelector('h3');
-      const titleHtml = h3 ? h3.outerHTML : '<h3></h3>';
-      if(h3) h3.remove();
-      const bodyHtml = panel.innerHTML;
-      panel.innerHTML = `
-        <div class="panel-head" onclick="toggleSettingsPanel(this)">
-          <div class="panel-head-left">
-            <span class="panel-drag-handle" title="ลากเพื่อจัดลำดับ">⠿</span>
-            ${titleHtml}
-          </div>
-          <div style="display:flex; align-items:center; gap:4px;" onclick="event.stopPropagation()">
-            <button type="button" class="btn btn-sm btn-icon" title="เลื่อนขึ้น" onclick="moveSettingsPanel('${panel.dataset.panelId}',-1)">↑</button>
-            <button type="button" class="btn btn-sm btn-icon" title="เลื่อนลง" onclick="moveSettingsPanel('${panel.dataset.panelId}',1)">↓</button>
-            <span class="panel-chevron" onclick="toggleSettingsPanel(this.closest('.panel').querySelector('.panel-head'))">▾</span>
-          </div>
-        </div>
-        <div class="panel-body">${bodyHtml}</div>`;
-      panel.classList.add('collapsible');
-    }
-    panel.classList.toggle('collapsed', collapsedIds.includes(panel.dataset.panelId));
-  });
-  applySettingsOrder();
-  if(!settingsPanelsWired){
-    panels.forEach(panel=>{
-      panel.draggable = true;
-      panel.addEventListener('dragstart', function(e){
-        if(!e.target.classList || !e.target.classList.contains('panel-drag-handle')){ e.preventDefault(); return; }
-        draggedPanelId = panel.dataset.panelId;
-        panel.classList.add('dragging');
-        try{ e.dataTransfer.setData('text/plain', draggedPanelId); e.dataTransfer.effectAllowed='move'; }catch(_){}
-      });
-      panel.addEventListener('dragend', function(){
-        panel.classList.remove('dragging');
-        document.querySelectorAll('#view-settings .panel.drag-over').forEach(p=>p.classList.remove('drag-over'));
-      });
-      panel.addEventListener('dragover', function(e){ e.preventDefault(); panel.classList.add('drag-over'); });
-      panel.addEventListener('dragleave', function(){ panel.classList.remove('drag-over'); });
-      panel.addEventListener('drop', function(e){
-        e.preventDefault(); panel.classList.remove('drag-over');
-        if(!draggedPanelId || draggedPanelId===panel.dataset.panelId) return;
-        const order = getSettingsOrder();
-        const from = order.indexOf(draggedPanelId);
-        const to = order.indexOf(panel.dataset.panelId);
-        if(from<0 || to<0) return;
-        order.splice(to,0,order.splice(from,1)[0]);
-        saveJSON(LS_SETTINGS_ORDER, order);
-        draggedPanelId = null;
-        renderSettings();
-      });
-    });
+function clearTypeImage(i){ delete TYPES[i].img; saveJSON(LS_TYPES, TYPES); renderTypeCfg(); toast('ลบรูปไอคอนแล้ว — กลับไปใช้ชุดไอคอน'); }
+
+/* ================= v8: ไอคอนแอป (เปลี่ยนได้ เหมือนหน้า "ไอคอนแอป" ของแอปทั่วไป) =================
+   - ค่าเริ่มต้นใช้ไฟล์ manifest.json + ไอคอนบน GitHub (ติดตั้งได้เสถียรที่สุด)
+   - ถ้าเลือกแบบอื่น ระบบสร้าง "ใบรายละเอียดแอป" (manifest) ใหม่ในเครื่องพร้อมไอคอนที่เลือก
+   - ชื่อแอปตอนติดตั้งจะใช้ชื่อร้านจากหน้า "โลโก้และชื่อร้าน" — พร้อมสำหรับขายให้ร้านอื่นในอนาคต
+   เพิ่มไอคอนสำเร็จรูปใหม่: อัปโหลดไฟล์ PNG ขึ้น GitHub แล้วเพิ่ม 1 ก้อนใน APP_ICON_PRESETS */
+const LS_APPICON = 'nanon_appicon_v1';
+const APP_ICON_PRESETS = [
+  {id:'default', name:'สมุดบัญชีทอง', src:'icon-512.png', src192:'icon-192.png', apple:'apple-touch-icon.png'},
+  {id:'coin', name:'เหรียญทอง ณ', src:'icon-coin-512.png', src192:'icon-coin-192.png', apple:'icon-coin-180.png'}
+];
+let APP_ICON = loadJSON(LS_APPICON, {choice:'default', custom:''});
+let appIconBlobUrl = null;
+function loadImageEl(src){ return new Promise((res, rej)=>{ const i = new Image(); i.onload = ()=>res(i); i.onerror = rej; i.src = src; }); }
+function renderIconCanvas(img, n, mode){
+  const c = document.createElement('canvas'); c.width = c.height = n;
+  const ctx = c.getContext('2d');
+  if(mode === 'logo'){
+    const g = ctx.createRadialGradient(n*.5, n*.35, n*.05, n*.5, n*.5, n*.75);
+    g.addColorStop(0, '#1d1d23'); g.addColorStop(1, '#0b0b0d');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, n, n);
+    const r = n*.33;
+    ctx.save(); ctx.beginPath(); ctx.arc(n/2, n/2, r, 0, Math.PI*2); ctx.clip();
+    const side = Math.min(img.width, img.height);
+    ctx.drawImage(img, (img.width-side)/2, (img.height-side)/2, side, side, n/2-r, n/2-r, r*2, r*2);
+    ctx.restore();
+    ctx.lineWidth = n*.022; ctx.strokeStyle = '#c9a54c';
+    ctx.beginPath(); ctx.arc(n/2, n/2, r + ctx.lineWidth/2, 0, Math.PI*2); ctx.stroke();
+    return c.toDataURL('image/png');
   }
-  settingsPanelsWired = true;
+  const side = Math.min(img.width, img.height), sx = (img.width-side)/2, sy = (img.height-side)/2;
+  if(mode === 'mask'){
+    // Android ตัดไอคอนเป็นวงกลม/ทรงอื่น — ย่อรูปไว้กลางพื้นสีมุมรูป จะได้ไม่โดนตัดขอบ
+    const t = document.createElement('canvas'); t.width = t.height = 1; t.getContext('2d').drawImage(img, sx, sy, 4, 4, 0, 0, 1, 1);
+    const d = t.getContext('2d').getImageData(0,0,1,1).data;
+    ctx.fillStyle = `rgb(${d[0]},${d[1]},${d[2]})`; ctx.fillRect(0, 0, n, n);
+    const pad = n*.1; ctx.drawImage(img, sx, sy, side, side, pad, pad, n-pad*2, n-pad*2);
+    return c.toDataURL('image/png');
+  }
+  ctx.drawImage(img, sx, sy, side, side, 0, 0, n, n);
+  return c.toDataURL('image/png');
+}
+function setIconLinks(manifestHref, appleHref, favHref){
+  const man = document.querySelector('link[rel="manifest"]');
+  const apple = document.querySelector('link[rel="apple-touch-icon"]');
+  const fav = document.querySelector('link[rel="icon"]');
+  if(man) man.setAttribute('href', manifestHref);
+  if(apple) apple.setAttribute('href', appleHref);
+  if(fav) fav.setAttribute('href', favHref);
+}
+async function applyAppIcon(){
+  const choice = APP_ICON.choice || 'default';
+  const fallback = ()=> setIconLinks('manifest.json', 'apple-touch-icon.png', 'icon-192.png');
+  if(choice === 'default') return fallback();
+  try{
+    const base = new URL('./', location.href).href;
+    let icons, appleHref, favHref;
+    const preset = APP_ICON_PRESETS.find(p=>p.id===choice);
+    if(preset){
+      icons = [
+        {src:new URL(preset.src192, base).href, sizes:'192x192', type:'image/png', purpose:'any'},
+        {src:new URL(preset.src, base).href, sizes:'512x512', type:'image/png', purpose:'any'}
+      ];
+      appleHref = preset.apple; favHref = preset.src192;
+    } else {
+      const src = choice === 'logo' ? BRAND.logo : APP_ICON.custom;
+      if(!src) return fallback();
+      const img = await loadImageEl(src);
+      const mode = choice === 'logo' ? 'logo' : 'cover';
+      const i512 = renderIconCanvas(img, 512, mode);
+      icons = [
+        {src:renderIconCanvas(img, 192, mode), sizes:'192x192', type:'image/png', purpose:'any'},
+        {src:i512, sizes:'512x512', type:'image/png', purpose:'any'},
+        {src: mode === 'logo' ? i512 : renderIconCanvas(img, 512, 'mask'), sizes:'512x512', type:'image/png', purpose:'maskable'}
+      ];
+      appleHref = renderIconCanvas(img, 180, mode); favHref = icons[0].src;
+    }
+    const manifest = {
+      name: (BRAND.name || 'ระบบหลังบ้าน') + ' — ระบบหลังบ้าน', short_name: BRAND.name || 'หลังบ้าน', lang:'th',
+      id: base, start_url: base, scope: base, display:'standalone', orientation:'portrait',
+      background_color:'#0b0b0d', theme_color: getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#111114',
+      icons
+    };
+    if(appIconBlobUrl) URL.revokeObjectURL(appIconBlobUrl);
+    appIconBlobUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'}));
+    setIconLinks(appIconBlobUrl, appleHref, favHref);
+  }catch(e){ console.warn('ตั้งไอคอนแอปไม่สำเร็จ ใช้ไอคอนเริ่มต้นแทน', e); fallback(); }
+}
+function appIconLabel(){
+  const c = APP_ICON.choice || 'default';
+  const p = APP_ICON_PRESETS.find(x=>x.id===c);
+  return p ? p.name : (c === 'logo' ? 'โลโก้ร้าน' : 'รูปที่อัปโหลด');
+}
+function renderAppIconPicker(){
+  const grid = document.getElementById('appIconGrid');
+  if(!grid) return;
+  const cur = APP_ICON.choice || 'default';
+  const opts = APP_ICON_PRESETS.map(p=>({id:p.id, name:p.name, html:`<img src="${p.src}" alt="">`}))
+    .concat([
+      {id:'logo', name: BRAND.logo ? 'โลโก้ร้าน' : 'โลโก้ร้าน (ยังไม่มีโลโก้)', disabled:!BRAND.logo, cls:'ai-logo', html: BRAND.logo ? `<img src="${BRAND.logo}" alt="">` : '<span class="ai-empty">ณ</span>'},
+      {id:'custom', name: APP_ICON.custom ? 'รูปที่อัปโหลด' : 'รูปที่อัปโหลด (ยังไม่มี)', disabled:!APP_ICON.custom, html: APP_ICON.custom ? `<img src="${APP_ICON.custom}" alt="">` : '<span class="ai-empty">+</span>'}
+    ]);
+  grid.innerHTML = opts.map(o=>`
+    <button type="button" class="appicon-opt${o.id===cur?' sel':''}" ${o.disabled?'disabled':''} onclick="chooseAppIcon('${o.id}')">
+      <span class="ai-img ${o.cls||''}">${o.html}</span><span class="ai-name">${o.name}</span>
+    </button>`).join('');
+}
+function chooseAppIcon(id){
+  APP_ICON.choice = id;
+  saveJSON(LS_APPICON, APP_ICON);
+  applyAppIcon(); renderAppIconPicker();
+  toast('ตั้งไอคอนแอปเป็น "' + appIconLabel() + '" แล้ว — มีผลตอนกดติดตั้งแอป');
+}
+document.getElementById('appIconFile').addEventListener('change', async function(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  try{
+    APP_ICON.custom = await resizeImageToDataURL(file, 512, 'image/jpeg', .9);
+    APP_ICON.choice = 'custom';
+    saveJSON(LS_APPICON, APP_ICON);
+    applyAppIcon(); renderAppIconPicker();
+    toast('อัปโหลดแล้ว ตั้งเป็นไอคอนแอป — มีผลตอนกดติดตั้งแอป');
+  }catch(err){ toast('บันทึกรูปไม่สำเร็จ (รูปอาจใหญ่เกินไป) ลองรูปอื่น'); }
+  e.target.value = '';
+});
+
+/* ================= v7: ติดตั้งเป็นแอป (PWA) ================= */
+let deferredInstallPrompt = null;
+function isStandaloneApp(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferredInstallPrompt = e; renderInstallPanel(); });
+window.addEventListener('appinstalled', function(){ deferredInstallPrompt = null; toast('ติดตั้งแอปเรียบร้อย — ดูไอคอนบนหน้าจอได้เลย'); renderInstallPanel(); });
+function renderInstallPanel(){
+  const st = document.getElementById('installStatus'), btn = document.getElementById('installBtn');
+  const ver = document.getElementById('appVersionLabel');
+  if(ver) ver.textContent = APP_VERSION;
+  if(!st || !btn) return;
+  if(isStandaloneApp()){ st.textContent = '✓ ตอนนี้เปิดอยู่ในโหมดแอปแล้ว'; btn.style.display = 'none'; return; }
+  if(location.protocol !== 'https:' && location.hostname !== 'localhost'){ st.textContent = 'ต้องเปิดผ่านลิงก์เว็บไซต์ (https://…github.io/…) จึงจะติดตั้งเป็นแอปได้ — เปิดจากไฟล์ในเครื่องติดตั้งไม่ได้'; btn.style.display = 'none'; return; }
+  if(deferredInstallPrompt){ st.textContent = 'เครื่องนี้ติดตั้งได้ทันที กดปุ่มด้านล่างได้เลย'; btn.style.display = 'inline-flex'; }
+  else { st.textContent = 'ทำตามขั้นตอนด้านล่างตามรุ่นมือถือ (ถ้าไม่มีปุ่มติดตั้งขึ้นมา)'; btn.style.display = 'none'; }
+}
+async function promptInstallApp(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  try{ await deferredInstallPrompt.userChoice; }catch(e){}
+  deferredInstallPrompt = null;
+  renderInstallPanel();
+}
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  navigator.serviceWorker.register('sw.js').catch(function(err){ console.warn('ลงทะเบียน service worker ไม่สำเร็จ', err); });
 }
 
-/* ---------- Theme customization: background color and/or a shop's own uploaded background image ---------- */
+/* ================= v7: THEME PRESETS =================
+   วิธีเพิ่มธีมใหม่ในอนาคต: คัดลอก 1 ก้อนใน THEME_PRESETS แล้วแก้ id / name / สี — ไม่ต้องแก้ CSS
+   - vars: ชุดสีของธีม (ทุกค่าตรวจความคมชัดตัวอักษรตามมาตรฐาน WCAG แล้ว อ่านง่ายทั้งบนมือถือและคอม)
+   - art: ภาพประดับเงาตึกด้านล่าง (seed = ลายตึกต่างกัน, stars/moon = ดาว/พระจันทร์) หรือ null = ไม่มีภาพ
+   ภาพเงาตึกวาดด้วยโค้ด (SVG) ทั้งหมด เป็นงานออกแบบของระบบนี้เอง ไม่ได้ใช้รูปจากแอปอื่น */
+const APP_VERSION = 'v8 (ต.ค. 2026)';
+const DEFAULT_THEME_PRESET = 'gold-skyline';
+const BASE_THEME_VARS = {
+  plRevenue:'#5b9bd5', plCost:'#d29a3a', plProfit:'#5aa36b', plLoss:'#e0604c',
+  fontDisplay:"'Noto Serif Thai',serif", glow:'none', green:'#4e8a5c', redBright:'#d1503d',
+  fxGlow:'rgba(230,202,125,.9)'
+};
+const THEME_PRESETS = [
+  { id:'gold-skyline', name:'ทองกลางเมือง', desc:'ดำด้าน ทองหรู เงาตึกยามค่ำ — ค่าเริ่มต้น', scheme:'dark',
+    vars:{ bg:'#0b0b0d', panel:'#111114', panel2:'#0d0d10', card:'#16161a', card2:'#1c1c21', line:'#2d2b27',
+      gold:'#c9a54c', goldBright:'#e6ca7d', goldDeep:'#7a5f1f', cream:'#f4f0e8', muted:'#b0a99c', muted2:'#8d8679',
+      accentRgb:'201,165,76', accentBrightRgb:'230,202,125', onAccent:'#1a1407', codeBg:'#08080a',
+      glow:'radial-gradient(900px 420px at 85% -12%, rgba(201,165,76,.10), transparent 62%)',
+      artFar:'#17171c', artNear:'#101013', artEdge:'rgba(201,165,76,.55)', artWindow:'rgba(230,202,125,.38)' },
+    art:{ seed:11, anim:{windows:true, dust:true} } },
+  { id:'champagne', name:'แชมเปญกลางวัน', desc:'พื้นสว่าง สะอาดตา อ่านง่ายกลางแจ้ง', scheme:'light',
+    vars:{ bg:'#f5f2eb', panel:'#ffffff', panel2:'#faf8f3', card:'#ffffff', card2:'#f5f1e8', line:'#e2dac8',
+      gold:'#8f6d1f', goldBright:'#7a5c15', goldDeep:'#5c4510', cream:'#1d1a15', muted:'#5e5648', muted2:'#776d5c',
+      accentRgb:'143,109,31', accentBrightRgb:'122,92,21', onAccent:'#ffffff', codeBg:'#f2eee4',
+      glow:'radial-gradient(900px 420px at 85% -12%, rgba(176,138,53,.12), transparent 62%)',
+      plRevenue:'#2a66a8', plCost:'#9c6512', plProfit:'#2d7a44', plLoss:'#b53a29', green:'#2d7a44', redBright:'#b53a29',
+      artFar:'#ebe4d3', artNear:'#ded3bb', artEdge:'rgba(176,138,53,.6)', artWindow:'rgba(176,138,53,.28)' },
+    art:{ seed:23 } },
+  { id:'midnight', name:'ไพลินราตรี', desc:'น้ำเงินเข้ม ทอง ดาวและพระจันทร์', scheme:'dark',
+    vars:{ bg:'#0a0f1c', panel:'#0f1526', panel2:'#0b101e', card:'#131a2e', card2:'#192138', line:'#28324f',
+      gold:'#d1ad55', goldBright:'#ead089', goldDeep:'#7d6424', cream:'#eef1f8', muted:'#a9b1c7', muted2:'#8790aa',
+      accentRgb:'209,173,85', accentBrightRgb:'234,208,137', onAccent:'#171204', codeBg:'#070b15',
+      glow:'radial-gradient(900px 420px at 85% -12%, rgba(120,140,220,.12), transparent 62%)',
+      artFar:'#162039', artNear:'#0d1324', artEdge:'rgba(209,173,85,.5)', artWindow:'rgba(234,208,137,.42)' },
+    art:{ seed:37, stars:true, moon:true, anim:{windows:true, stars:true, shooting:true} } },
+  { id:'jade', name:'หยกมรกต', desc:'เขียวหยกเข้ม คู่ทอง ดูมั่นคง', scheme:'dark',
+    vars:{ bg:'#08120f', panel:'#0c1814', panel2:'#09130f', card:'#10201a', card2:'#152921', line:'#243c31',
+      gold:'#cfa94f', goldBright:'#e8cc80', goldDeep:'#77601f', cream:'#eef5f0', muted:'#a6b9ae', muted2:'#84998d',
+      accentRgb:'207,169,79', accentBrightRgb:'232,204,128', onAccent:'#151104', codeBg:'#060d0a',
+      glow:'radial-gradient(900px 420px at 85% -12%, rgba(80,170,130,.10), transparent 62%)',
+      artFar:'#112620', artNear:'#0a1813', artEdge:'rgba(207,169,79,.5)', artWindow:'rgba(232,204,128,.35)' },
+    art:{ seed:52, anim:{windows:true} } },
+  { id:'firefly', name:'หิ่งห้อยริมเมือง', desc:'เขียวเข้มยามค่ำ หิ่งห้อยกะพริบ', scheme:'dark', fab:'glow',
+    vars:{ bg:'#06110f', panel:'#0a1815', panel2:'#071311', card:'#0e1f1b', card2:'#132823', line:'#22392f',
+      gold:'#d2b25a', goldBright:'#ead38a', goldDeep:'#7c6626', cream:'#eef6f1', muted:'#a5bab0', muted2:'#84998e',
+      accentRgb:'210,178,90', accentBrightRgb:'234,211,138', onAccent:'#141006', codeBg:'#050d0b',
+      glow:'radial-gradient(900px 420px at 80% -12%, rgba(90,200,150,.13), transparent 62%)',
+      fxGlow:'rgba(226,240,130,.95)',
+      artFar:'#0f241e', artNear:'#081511', artEdge:'rgba(210,178,90,.35)', artWindow:'rgba(234,211,138,.32)' },
+    art:{ seed:61, moon:true, anim:{fireflies:true, windows:true} } },
+  { id:'snow', name:'เหมันต์ราตรี', desc:'หิมะโปรย แสงเหนือ หลังคาขาว', scheme:'dark', fab:'snow',
+    vars:{ bg:'#08121c', panel:'#0c1826', panel2:'#09131f', card:'#10202f', card2:'#152839', line:'#25394d',
+      gold:'#d4b35e', goldBright:'#ecd38e', goldDeep:'#7e6728', cream:'#eef4fa', muted:'#a9b9c9', muted2:'#8898aa',
+      accentRgb:'212,179,94', accentBrightRgb:'236,211,142', onAccent:'#151004', codeBg:'#060d15',
+      glow:'radial-gradient(900px 420px at 80% -12%, rgba(90,210,190,.12), transparent 62%)',
+      artFar:'#13263a', artNear:'#0b1826', artEdge:'rgba(240,248,255,.85)', artWindow:'rgba(255,214,140,.55)' },
+    art:{ seed:73, stars:true, anim:{snow:true, aurora:true, windows:true, stars:true} } },
+  { id:'lantern', name:'ตรุษจีนมั่งคั่ง', desc:'แดง-ทอง โคมลอยขึ้นฟ้า เหมาะช่วงตรุษจีน', scheme:'dark', fab:'lantern',
+    vars:{ bg:'#14070a', panel:'#1c0b0e', panel2:'#16080b', card:'#231013', card2:'#2b1518', line:'#47252b',
+      gold:'#d6a93e', goldBright:'#f0cd70', goldDeep:'#86621a', cream:'#fbf1e6', muted:'#cdb2a8', muted2:'#a98e85',
+      accentRgb:'214,169,62', accentBrightRgb:'240,205,112', onAccent:'#1f0f04', codeBg:'#100507',
+      glow:'radial-gradient(900px 420px at 80% -12%, rgba(220,60,40,.20), transparent 62%)',
+      artFar:'#2a1013', artNear:'#1a080b', artEdge:'rgba(214,169,62,.6)', artWindow:'rgba(255,190,110,.45)' },
+    art:{ seed:88, anim:{lanterns:true, windows:true} } },
+  { id:'classic', name:'ทองคลาสสิก', desc:'หน้าตาดั้งเดิมของระบบ ไม่มีภาพประดับ', scheme:'dark',
+    vars:{ bg:'#0e0c09', panel:'#161209', panel2:'#120f08', card:'#1c170f', card2:'#221b10', line:'#332a19',
+      gold:'#cda434', goldBright:'#e9c766', goldDeep:'#7c5f16', cream:'#f2e9d8', muted:'#a9987a', muted2:'#93856a',
+      accentRgb:'205,164,52', accentBrightRgb:'233,199,102', onAccent:'#241a06', codeBg:'#0b0906',
+      glow:'radial-gradient(1200px 500px at 10% -10%, rgba(205,164,52,.08), transparent 60%)',
+      artFar:'transparent', artNear:'transparent', artEdge:'transparent', artWindow:'transparent' },
+    art:null }
+];
+const THEME_VAR_MAP = {
+  bg:'--bg', panel:'--panel', panel2:'--panel-2', card:'--card', card2:'--card-2', line:'--line',
+  gold:'--gold', goldBright:'--gold-bright', goldDeep:'--gold-deep', cream:'--cream', muted:'--muted', muted2:'--muted-2',
+  accentRgb:'--accent-rgb', accentBrightRgb:'--accent-bright-rgb', onAccent:'--on-accent', codeBg:'--code-bg',
+  glow:'--glow', fontDisplay:'--font-display', plRevenue:'--pl-revenue', plCost:'--pl-cost', plProfit:'--pl-profit',
+  plLoss:'--pl-loss', green:'--green', redBright:'--red-bright',
+  artFar:'--art-far', artNear:'--art-near', artEdge:'--art-edge', artWindow:'--art-window', fxGlow:'--fx-glow'
+};
 let THEME = loadJSON(LS_THEME, DEFAULT_THEME);
+if(!THEME.preset) THEME.preset = DEFAULT_THEME_PRESET;
+let themePreviewId = null;
+function findPreset(id){ return THEME_PRESETS.find(t=>t.id===id) || THEME_PRESETS.find(t=>t.id===DEFAULT_THEME_PRESET); }
+function presetVars(p){ return Object.assign({}, BASE_THEME_VARS, p.vars); }
+function themeVarsStyle(p){
+  const v = presetVars(p);
+  return Object.keys(THEME_VAR_MAP).map(k=> v[k]!==undefined ? `${THEME_VAR_MAP[k]}:${v[k]}` : '').filter(Boolean).join(';').replace(/"/g,"'");
+}
+
+/* ---- ภาพเงาตึก (SVG) — สุ่มแบบคงที่ตาม seed: ลายเดิมทุกครั้งที่เปิด ---- */
+function seededRandom(seed){
+  let a = seed >>> 0;
+  return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const skylineCache = {};
+function skylineSVG(art){
+  const key = JSON.stringify(art);
+  if(skylineCache[key]) return skylineCache[key];
+  const W = 1200, H = 260, rnd = seededRandom(art.seed || 7), anim = art.anim || {};
+  const f = n => n.toFixed(1);
+  let far = '', near = '', wins = '', edges = '', sky = '';
+  let x = 0;
+  while(x < W){
+    const w = 26 + rnd()*58, h = 70 + rnd()*105;
+    far += `<rect x="${f(x)}" y="${f(H-h)}" width="${f(w+1)}" height="${f(h)}"/>`;
+    if(rnd() < .25){ far += `<rect x="${f(x+w/2-1)}" y="${f(H-h-18)}" width="2" height="18"/>`; }
+    x += w;
+  }
+  x = -10; let i = 0;
+  while(x < W){
+    const w = 40 + rnd()*68; let h = 42 + rnd()*100;
+    const landmark = (i % 6 === 3);
+    if(landmark) h = 150 + rnd()*55;
+    const y = H - h;
+    near += `<rect x="${f(x)}" y="${f(y)}" width="${f(w+1)}" height="${f(h)}"/>`;
+    if(landmark){
+      const cx = x + w/2, t1 = x + w*.2, t2 = x + w*.8;
+      const crown = `M${f(t1)} ${f(y)}L${f(cx-w*.1)} ${f(y-24)}L${f(cx+w*.1)} ${f(y-24)}L${f(t2)} ${f(y)}`;
+      near += `<path d="${crown}Z"/><rect x="${f(cx-1.2)}" y="${f(y-62)}" width="2.4" height="40"/>`;
+      edges += `<path d="M${f(x)} ${f(y)}H${f(t1)}${crown.replace(/^M[^L]+/, '')}H${f(x+w)}"/>`;
+    } else {
+      edges += `<path d="M${f(x)} ${f(y)}H${f(x+w)}"/>`;
+    }
+    for(let wy = y + 12; wy < H - 12; wy += 14){
+      for(let wx = x + 7; wx < x + w - 9; wx += 11){
+        if(rnd() < .15){
+          const blink = anim.windows && rnd() < .3;
+          wins += `<rect x="${f(wx)}" y="${f(wy)}" width="4" height="6"${blink ? ` class="sky-blink" style="animation-duration:${f(3 + rnd()*6)}s;animation-delay:-${f(rnd()*8)}s"` : ''}/>`;
+        }
+      }
+    }
+    x += w + (rnd() < .3 ? 4 + rnd()*10 : 0); i++;
+  }
+  if(art.stars){
+    for(let s = 0; s < 46; s++){
+      const tw = anim.stars ? ` class="sky-star" style="animation-duration:${f(2.5 + rnd()*4)}s;animation-delay:-${f(rnd()*6)}s"` : '';
+      sky += `<circle cx="${f(rnd()*W)}" cy="${f(8 + rnd()*120)}" r="${f(.5 + rnd()*1.1)}"${tw}/>`;
+    }
+  }
+  const moon = art.moon ? `<circle cx="1010" cy="58" r="20" fill="var(--art-window)" opacity=".75"/><circle cx="1019" cy="52" r="18" fill="var(--bg)"/>` : '';
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">`
+    + `<g fill="var(--art-window)" opacity=".7">${sky}</g>${moon}`
+    + `<g fill="var(--art-far)">${far}</g><g fill="var(--art-near)">${near}</g>`
+    + `<g fill="var(--art-window)">${wins}</g>`
+    + `<g fill="none" stroke="var(--art-edge)" stroke-width="1.4" stroke-linejoin="round">${edges}</g>`
+    + `<rect x="0" y="${H-2}" width="${W}" height="2" fill="var(--art-edge)"/></svg>`;
+  skylineCache[key] = svg;
+  return svg;
+}
+
+/* ---- เอฟเฟกต์เคลื่อนไหว (v8): คืนค่า {back, front} — back อยู่หลังภาพเงาตึก, front อยู่หน้า ----
+   เพิ่มเอฟเฟกต์ใหม่: เพิ่มชื่อใน art.anim ของธีม + เพิ่มเงื่อนไขที่นี่ + เพิ่ม @keyframes ใน CSS */
+function fxHTML(art, scale){
+  scale = scale || 1;
+  const A = (art && art.anim) || {};
+  const rnd = seededRandom(((art && art.seed) || 7) * 31 + 5);
+  const f = n => n.toFixed(2);
+  const count = n => Math.max(2, Math.round(n * scale));
+  let back = '', front = '';
+  if(A.aurora) back += '<span class="fx fx-aurora"></span>';
+  if(A.shooting) back += '<span class="fx fx-shoot"></span>';
+  if(A.lanterns){
+    for(let i = 0; i < count(9); i++){
+      const sz = (16 + rnd()*14) * (scale < 1 ? .55 : 1);
+      back += `<span class="fx fx-lantern" style="left:${f(4 + rnd()*90)}%;--s:${f(sz)}px;--dx:${f((rnd()-.5)*70)}px;animation-duration:${f(18 + rnd()*14)}s;animation-delay:-${f(rnd()*30)}s"><i></i></span>`;
+    }
+  }
+  if(A.dust){
+    for(let i = 0; i < count(18); i++){
+      front += `<span class="fx fx-dust" style="left:${f(rnd()*100)}%;--dx:${f((rnd()-.5)*80)}px;animation-duration:${f(10 + rnd()*10)}s;animation-delay:-${f(rnd()*20)}s"></span>`;
+    }
+  }
+  if(A.fireflies){
+    for(let i = 0; i < count(22); i++){
+      front += `<span class="fx fx-fly" style="left:${f(rnd()*100)}%;top:${f(48 + rnd()*48)}%;--dx:${f(20 + rnd()*45)}px;--dy:${f(10 + rnd()*35)}px;animation-duration:${f(6 + rnd()*7)}s,${f(2 + rnd()*3.5)}s;animation-delay:-${f(rnd()*12)}s,-${f(rnd()*5)}s"></span>`;
+    }
+  }
+  if(A.snow){
+    for(let i = 0; i < count(45); i++){
+      front += `<span class="fx fx-snow" style="left:${f(rnd()*100)}%;--s:${f(2 + rnd()*3.5)}px;--dx:${f((rnd()-.3)*70)}px;opacity:${f(.45 + rnd()*.5)};animation-duration:${f(9 + rnd()*12)}s;animation-delay:-${f(rnd()*20)}s"></span>`;
+    }
+  }
+  return {back, front};
+}
+function hasAnim(art){ return !!(art && art.anim && Object.keys(art.anim).some(k=>art.anim[k])); }
+const LS_MOTION = 'nanon_motion_v1';
+function motionOn(){ try{ return localStorage.getItem(LS_MOTION) !== 'off'; }catch(e){ return true; } }
+function setMotion(on){
+  try{ localStorage.setItem(LS_MOTION, on ? 'on' : 'off'); }catch(e){}
+  document.documentElement.classList.toggle('no-motion', !on);
+  toast(on ? 'เปิดภาพเคลื่อนไหวแล้ว' : 'ปิดภาพเคลื่อนไหวแล้ว');
+}
+document.documentElement.classList.toggle('no-motion', !motionOn());
+document.addEventListener('visibilitychange', function(){
+  document.documentElement.classList.toggle('fx-paused', document.hidden); // สลับไปแอปอื่น = หยุดเคลื่อนไหว ประหยัดแบต
+});
+
+/* ---- ใช้ธีม: ตั้งตัวแปรสีทั้งระบบ + ภาพประดับ + พื้นหลังที่ร้านตั้งเอง (ถ้ามี) ---- */
+let lastArtKey = null;
+function applyTheme(){
+  const p = findPreset(themePreviewId || THEME.preset);
+  const v = presetVars(p);
+  const root = document.documentElement;
+  Object.keys(THEME_VAR_MAP).forEach(k=>{ if(v[k]!==undefined) root.style.setProperty(THEME_VAR_MAP[k], v[k]); });
+  // สีตัวอักษรที่ตั้งเองในหน้า "ตัวอักษร" (ถ้ามี) — ตอนดูตัวอย่างธีมจะใช้สีของธีมแทน
+  if(!themePreviewId && FONT.color) root.style.setProperty('--cream', FONT.color);
+  root.style.colorScheme = p.scheme;
+  root.dataset.scheme = p.scheme; // ให้ช่องเลือก/ปฏิทิน/แถบเลื่อนของระบบเป็นโทนเดียวกับธีม
+  const artEl = document.getElementById('themeArt');
+  const artKey = p.art ? p.id : '';
+  if(artEl && artKey !== lastArtKey){
+    artEl.innerHTML = p.art ? skylineSVG(p.art) : '';
+    const fx = p.art ? fxHTML(p.art, 1) : {back:'', front:''};
+    document.getElementById('themeFxBack').innerHTML = fx.back;
+    document.getElementById('themeFx').innerHTML = fx.front;
+    lastArtKey = artKey;
+  }
+  root.dataset.fab = p.fab || '';
+  const useCustom = !themePreviewId;
+  const body = document.body;
+  body.style.background = ''; body.style.backgroundImage = ''; body.style.backgroundSize = '';
+  body.style.backgroundAttachment = ''; body.style.backgroundPosition = '';
+  if(useCustom && THEME.bgImage){
+    body.style.background = `linear-gradient(color-mix(in srgb, var(--bg) 78%, transparent), color-mix(in srgb, var(--bg) 78%, transparent)), url('${THEME.bgImage}') center / cover fixed`;
+  } else if(useCustom && THEME.bgColor){
+    body.style.background = THEME.bgColor;
+  }
+  const meta = document.getElementById('metaThemeColor');
+  if(meta) meta.setAttribute('content', (useCustom && THEME.bgColor) || v.panel);
+}
 function renderThemeForm(){
-  document.getElementById('themeBgColor').value = THEME.bgColor || '#0e0c09';
+  document.getElementById('themeBgColor').value = THEME.bgColor || findPreset(THEME.preset).vars.bg;
   const prev = document.getElementById('themeBgPreview');
   if(THEME.bgImage){ prev.src = THEME.bgImage; prev.style.display='block'; } else { prev.style.display='none'; }
 }
@@ -2807,24 +3573,52 @@ document.getElementById('themeBgFile').addEventListener('change', function(e){
 function clearThemeImage(){ THEME.bgImage=''; renderThemeForm(); }
 function clearThemeColor(){ THEME.bgColor=''; renderThemeForm(); }
 function saveTheme(){
-  THEME.bgColor = document.getElementById('themeBgColor').value;
+  const v = document.getElementById('themeBgColor').value;
+  THEME.bgColor = (v.toLowerCase() === findPreset(THEME.preset).vars.bg.toLowerCase()) ? '' : v;
   saveJSON(LS_THEME, THEME);
   applyTheme();
-  toast('บันทึกธีมแล้ว');
+  toast('บันทึกพื้นหลังแล้ว');
 }
-function applyTheme(){
-  if(THEME.bgImage){
-    document.body.style.backgroundImage = `linear-gradient(rgba(6,5,3,.72), rgba(6,5,3,.72)), url('${THEME.bgImage}')`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.style.backgroundPosition = 'center';
-  } else if(THEME.bgColor){
-    document.body.style.backgroundImage = 'none';
-    document.body.style.background = THEME.bgColor;
-  } else {
-    document.body.style.backgroundImage = '';
-    document.body.style.background = '';
-  }
+function renderThemePicker(){
+  const grid = document.getElementById('themeGrid');
+  if(!grid) return;
+  const active = themePreviewId || THEME.preset;
+  grid.innerHTML = THEME_PRESETS.map(t=>`
+    <button type="button" class="theme-card${t.id===active?' sel':''}" style="${themeVarsStyle(t)}" onclick="previewThemePreset('${t.id}')">
+      <span class="tc-check">✓</span>
+      <div class="tc-screen">
+        <div class="tc-title"></div><div class="tc-sub"></div>
+        <div class="tc-cards"><div class="tc-card"><i></i><b></b></div><div class="tc-card"><i></i><b></b></div></div>
+        <div class="tc-btn"></div>
+        ${t.art?(()=>{ const fx = fxHTML(t.art, .4); return `<div class="tc-fx">${fx.back}</div><div class="tc-art">${skylineSVG(t.art)}</div><div class="tc-fx">${fx.front}</div>`; })():''}
+      </div>
+      <div class="tc-name">${t.name}${t.id===THEME.preset?'<span class="tc-current">ใช้อยู่</span>':''}</div>
+      <div class="tc-desc">${t.desc}${hasAnim(t.art)?'<span class="tc-badge">✦ เคลื่อนไหว</span>':''}</div>
+    </button>`).join('');
+  const mt = document.getElementById('motionToggle'); if(mt) mt.checked = motionOn();
+  document.getElementById('themeActions').classList.toggle('show', !!themePreviewId);
+}
+function previewThemePreset(id){
+  themePreviewId = (id === THEME.preset) ? null : id;
+  applyTheme();
+  renderThemePicker();
+}
+function cancelThemePreview(){
+  if(!themePreviewId) return;
+  themePreviewId = null;
+  applyTheme();
+  renderThemePicker();
+}
+function saveThemePreset(){
+  if(!themePreviewId) return;
+  if((THEME.bgColor || THEME.bgImage) && !confirm('ร้านเคยตั้งสี/รูปพื้นหลังเองไว้ — ใช้ธีมนี้แทน (ล้างพื้นหลังที่ตั้งเอง) ใช่ไหม?')) return;
+  THEME.preset = themePreviewId;
+  THEME.bgColor = ''; THEME.bgImage = '';
+  FONT.color = ''; saveJSON(LS_FONT, FONT); // ใช้สีตัวอักษรของธีม จะได้อ่านง่ายเสมอ
+  themePreviewId = null;
+  saveJSON(LS_THEME, THEME);
+  applyTheme(); renderThemePicker(); renderThemeForm();
+  toast('เปลี่ยนธีมเป็น "' + findPreset(THEME.preset).name + '" แล้ว');
 }
 
 /* ---------- Export/import field-config-only "template" — lets the shop owner hand the add-purchase
@@ -2891,8 +3685,11 @@ function saveBranches(){
 function renderTypeCfg(){
   const wrap = document.getElementById('typeCfgList');
   wrap.innerHTML = TYPES.map((t,i)=>`
-    <div class="cfg-row">
-      <input type="text" value="${escAttr(t.emoji||'')}" maxlength="4" style="flex:none; width:44px; text-align:center;" onchange="updateTypeEmoji(${i}, this.value)" title="ไอคอน">
+    <div class="cfg-row" style="flex-wrap:wrap;">
+      <span class="type-cfg-icon" title="ไอคอนที่แสดงอยู่ตอนนี้">${typeIconHTML(t.name)}</span>
+      <input type="text" value="${escAttr(t.emoji||'')}" maxlength="4" style="flex:none; width:44px; text-align:center;" onchange="updateTypeEmoji(${i}, this.value)" title="อีโมจิ (ใช้เมื่อเลือกชุดไอคอน 'อีโมจิ')">
+      <label class="btn btn-sm upload-btn" title="อัปโหลดรูปเป็นไอคอนของประเภทนี้" style="flex:none;">🖼<input type="file" accept="image/*" onchange="uploadTypeImage(${i}, this)"></label>
+      ${t.img?`<button type="button" class="btn btn-sm" style="flex:none;" onclick="clearTypeImage(${i})">ลบรูป</button>`:''}
       <input type="color" value="${t.color}" onchange="updateTypeColor(${i}, this.value)">
       <input type="text" value="${t.name}" onchange="updateTypeName(${i}, this.value)">
       <button class="cfg-remove" onclick="removeType(${i})" title="ลบ">✕</button>
@@ -3033,6 +3830,7 @@ function saveBrand(){
   BRAND.sub = document.getElementById('brandSubInput').value.trim();
   saveJSON(LS_BRAND, BRAND);
   applyBrand();
+  if(APP_ICON.choice && APP_ICON.choice !== 'default') applyAppIcon(); // โลโก้/ชื่อร้านใหม่ = ไอคอน/ชื่อแอปใหม่
   toast('บันทึกโลโก้และชื่อร้านแล้ว');
 }
 function applyBrand(){
@@ -3193,7 +3991,7 @@ document.getElementById('restoreFileInput').addEventListener('change', function(
 
 /* ---------- Settings: font ---------- */
 function renderFontForm(){
-  document.getElementById('fontColorPicker').value = FONT.color;
+  document.getElementById('fontColorPicker').value = FONT.color || findPreset(THEME.preset).vars.cream;
   document.querySelectorAll('#fontSizeOpts .opt').forEach(o=>{
     o.classList.toggle('sel', Number(o.dataset.size)===FONT.size);
   });
@@ -3205,7 +4003,8 @@ document.querySelectorAll('#fontSizeOpts .opt').forEach(o=>{
   });
 });
 function saveFontSettings(){
-  FONT.color = document.getElementById('fontColorPicker').value;
+  const pick = document.getElementById('fontColorPicker').value;
+  FONT.color = (pick.toLowerCase() === findPreset(THEME.preset).vars.cream.toLowerCase()) ? '' : pick;
   const selOpt = document.querySelector('#fontSizeOpts .opt.sel');
   FONT.size = selOpt ? Number(selOpt.dataset.size) : 100;
   saveJSON(LS_FONT, FONT);
@@ -3217,8 +4016,8 @@ function resetFontSettings(){
   toast('คืนค่าเริ่มต้นแล้ว');
 }
 function applyFont(){
-  document.documentElement.style.setProperty('--cream', FONT.color);
   document.body.style.zoom = (FONT.size/100);
+  if(typeof applyTheme==='function' && typeof THEME!=='undefined') applyTheme(); // สีตัวอักษรถูกจัดการใน applyTheme
 }
 
 /* ---------- Google Sheets sync ---------- */
@@ -3519,6 +4318,7 @@ applyBrand();
 applyFont();
 applyTheme();
 applyLabels();
+applyAppIcon();
 prepAddForm();
 refreshSyncBadge();
 (function restoreLastView(){
