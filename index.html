@@ -1150,6 +1150,13 @@
             <input type="file" accept="application/json" id="restoreFileInput">
           </label>
         </div>
+        <h4 style="margin:22px 0 6px; font-size:14px;">พื้นที่เก็บข้อมูลในเครื่องนี้</h4>
+        <p class="hint" style="margin-bottom:8px;">เบราว์เซอร์ให้พื้นที่เว็บนี้ประมาณ 5 MB ถ้าเต็มจะบันทึกรายการไม่ได้ — รูปที่ขึ้น Google Drive แล้วจะถูกลบออกจากเครื่องเองอัตโนมัติ (ยังดูรูปได้ตามปกติ)</p>
+        <div id="storageMeter"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="btn btn-sm" onclick="sendPendingPhotosNow()">☁ ส่งรูปที่ค้างขึ้น Drive ตอนนี้</button>
+          <button type="button" class="btn btn-sm" onclick="renderStorageMeter()">↻ คำนวณใหม่</button>
+        </div>
       </div>
 
       <div class="panel" data-panel-id="labels">
@@ -1676,6 +1683,8 @@ function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/
 // TITLES ต้องประกาศก่อน TX เพราะ normalizeRecord ใช้แยกคำนำหน้าออกจากชื่อเต็มของรายการเก่า
 let TITLES = loadJSON(LS_TITLES, DEFAULT_TITLES);
 let TX = loadJSON(LS_KEY, []).map(normalizeRecord);
+if(TX.map(stripUploadedPhotos).some(Boolean)){ // ต้องเรียกกับทุกรายการ (some() จะหยุดที่รายการแรก)
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(TX)); }catch(e){} } // คืนพื้นที่ทันทีที่เปิดแอป
 let BRANCHES = loadJSON(LS_BRANCHES, DEFAULT_BRANCHES);
 let TYPES = loadJSON(LS_TYPES, DEFAULT_TYPES);
 let STATUSES = loadJSON(LS_STATUSES, DEFAULT_STATUSES);
@@ -1686,7 +1695,38 @@ let BRAND = loadJSON(LS_BRAND, DEFAULT_BRAND);
 let CUSTOMERS = loadJSON(LS_CUSTOMERS, []);
 let WATCHLIST = loadJSON(LS_WATCHLIST, []);
 
-function saveTx(){ saveJSON(LS_KEY, TX); }
+/* v11: บั๊กสำคัญ — รูปถ่ายถูกเก็บเป็นไฟล์ภาพขนาดใหญ่ในเครื่องตลอดไปแม้อัปโหลดขึ้น Drive แล้ว
+   เบราว์เซอร์ให้พื้นที่เว็บละ ~5 MB (ประมาณ 20–30 รูป) พอเต็ม การบันทึกรายการจะล้มเหลว (QuotaExceededError)
+   ตอนนี้: รูปที่ขึ้น Drive ครบแล้วจะถูกลบออกจากเครื่องอัตโนมัติ (ยังดูรูปได้จาก Drive) และ saveTx จะไม่ทำให้แอปค้างอีก */
+let storageFullWarned = false;
+function isQuotaError(e){ return e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014 || /quota/i.test(e.message||'')); }
+function stripUploadedPhotos(rec){
+  let changed = false;
+  if(rec.photos && rec.photos.length && rec.driveUrls && rec.driveUrls.length >= rec.photos.length){ rec.photos = []; changed = true; }
+  if(rec.slipPhotos && rec.slipPhotos.length && rec.slipDriveUrls && rec.slipDriveUrls.length >= rec.slipPhotos.length){ rec.slipPhotos = []; changed = true; }
+  return changed;
+}
+function needsPhotoUpload(rec){
+  return (rec.photos||[]).length > (rec.driveUrls||[]).length || (rec.slipPhotos||[]).length > (rec.slipDriveUrls||[]).length;
+}
+function saveTx(){
+  try{ saveJSON(LS_KEY, TX); storageFullWarned = false; return true; }
+  catch(e){
+    if(!isQuotaError(e)){ console.warn('saveTx failed', e); return false; }
+    TX.forEach(stripUploadedPhotos);                       // ลองคืนพื้นที่ก่อน: ลบรูปที่ขึ้น Drive แล้ว
+    try{ saveJSON(LS_KEY, TX); return true; }
+    catch(e2){
+      if(!storageFullWarned){
+        storageFullWarned = true;
+        const msg = loadJSONsheetUrl()
+          ? '⚠ พื้นที่ในเครื่องเต็ม — ข้อมูลยังอยู่ในหน้านี้และกำลังส่งรูปขึ้น Drive อย่าปิดแอปจนกว่าจะส่งเสร็จ (ตั้งค่า → สำรองและกู้คืน ดูพื้นที่ได้)'
+          : '⚠ พื้นที่ในเครื่องเต็ม บันทึกไม่ได้ — เชื่อม Google Sheets เพื่อย้ายรูปขึ้น Drive หรือลบรูปพื้นหลังธีม (ตั้งค่า → สำรองและกู้คืน)';
+        try{ toast(msg, 9000); }catch(_){}
+      }
+      return false;
+    }
+  }
+}
 function saveCustomers(){ saveJSON(LS_CUSTOMERS, CUSTOMERS); }
 function loadSecret(){ return localStorage.getItem(LS_SECRET) || ''; }
 
@@ -1977,14 +2017,20 @@ document.querySelectorAll('#paymentPicker .opt').forEach(o=>{
   });
 });
 
+/* v11: ลิงก์แบบ drive.google.com/uc?id= มักแสดงรูปในแอปไม่ขึ้น (Google เปลี่ยนวิธีส่งไฟล์) — แปลงเป็นลิงก์รูปย่อขนาดใหญ่แทน
+   ไม่ได้แก้ลิงก์ที่เก็บในชีต แค่เปลี่ยนตอนแสดงผล */
+function driveDisplayUrl(u){
+  const m = String(u||'').match(/[?&]id=([\w-]+)/) || String(u||'').match(/\/d\/([\w-]+)/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1600` : u;
+}
 function getPhotosForDisplay(rec){
   if(rec.photos && rec.photos.length) return rec.photos;
-  if(rec.driveUrls && rec.driveUrls.length) return rec.driveUrls;
+  if(rec.driveUrls && rec.driveUrls.length) return rec.driveUrls.map(driveDisplayUrl);
   return [];
 }
 function getSlipPhotosForDisplay(rec){
   if(rec.slipPhotos && rec.slipPhotos.length) return rec.slipPhotos;
-  if(rec.slipDriveUrls && rec.slipDriveUrls.length) return rec.slipDriveUrls;
+  if(rec.slipDriveUrls && rec.slipDriveUrls.length) return rec.slipDriveUrls.map(driveDisplayUrl);
   return [];
 }
 let lightboxPhotos = [], lightboxIndex = 0;
@@ -2547,7 +2593,14 @@ document.getElementById('addForm').addEventListener('submit', function(e){
       synced:false
     };
   });
-  TX.push(...newRecs); saveTx();
+  TX.push(...newRecs);
+  const saved = saveTx();
+  if(!saved && !loadJSONsheetUrl()){
+    // เต็มและไม่มีที่ส่งต่อ (ยังไม่เชื่อมชีต) — ไม่ล้างฟอร์ม กันข้อมูลหาย ให้แก้พื้นที่ก่อนแล้วกดบันทึกใหม่
+    TX = TX.filter(t=>!newRecs.includes(t));
+    toast('⚠ บันทึกไม่ได้ พื้นที่ในเครื่องเต็ม — ข้อมูลในฟอร์มยังอยู่ ลบรูปพื้นหลังธีม หรือเชื่อม Google Sheets แล้วกดบันทึกใหม่', 9000);
+    return;
+  }
   const n = newRecs.length;
   toast((cust.vip?'⭐ ลูกค้าประจำ ('+cust.code+') — ':'') + `บันทึกเรียบร้อย ${n} รายการสินค้า`);
   resetForm();
@@ -2904,6 +2957,33 @@ async function shareAfterSave(key){
   if(!m.pending) toast('✓ บันทึกแล้ว และส่งให้ทุกเครื่องแล้ว');
   else toast('บันทึกในเครื่องนี้แล้ว — จะส่งให้เครื่องอื่นเมื่อเชื่อมต่อได้');
   renderSharedStatus(key, 'goldShareStatus');
+}
+
+/* ---------- v11: ดูพื้นที่ในเครื่อง ---------- */
+function lsSizeOf(key){ try{ const v = localStorage.getItem(key); return v ? (key.length + v.length) * 2 : 0; }catch(e){ return 0; } }
+function fmtMB(bytes){ return (bytes/1048576).toFixed(2) + ' MB'; }
+function renderStorageMeter(){
+  const el = document.getElementById('storageMeter'); if(!el) return;
+  let total = 0; try{ for(let i = 0; i < localStorage.length; i++){ total += lsSizeOf(localStorage.key(i)); } }catch(e){}
+  const tx = lsSizeOf(LS_KEY), theme = lsSizeOf(LS_THEME), icons = lsSizeOf(LS_APPICON) + lsSizeOf(LS_TYPES) + lsSizeOf(LS_BRAND);
+  const pendingPhotos = TX.reduce((n,t)=> n + Math.max(0,(t.photos||[]).length - (t.driveUrls||[]).length) + Math.max(0,(t.slipPhotos||[]).length - (t.slipDriveUrls||[]).length), 0);
+  const LIMIT = 5 * 1048576, pct = Math.min(100, Math.round(total / LIMIT * 100));
+  const color = pct >= 85 ? 'var(--pl-loss)' : (pct >= 60 ? 'var(--amber)' : 'var(--pl-profit)');
+  el.innerHTML = `
+    <div style="height:10px; border-radius:6px; background:var(--card-2); border:1px solid var(--line); overflow:hidden;">
+      <div style="height:100%; width:${pct}%; background:${color};"></div></div>
+    <p class="hint" style="margin:8px 0 0;">ใช้ไปประมาณ <b>${fmtMB(total)}</b> (${pct}%) — รายการซื้อขาย+รูป ${fmtMB(tx)} · รูปพื้นหลังธีม ${fmtMB(theme)} · โลโก้/ไอคอน ${fmtMB(icons)}
+      ${pendingPhotos ? `<br>⏳ มีรูปที่ยังไม่ขึ้น Drive ${pendingPhotos} รูป (ยังเก็บในเครื่อง)` : '<br>✓ รูปทั้งหมดขึ้น Drive แล้ว'}
+      ${theme > 1048576 ? '<br>⚠ รูปพื้นหลังธีมใหญ่มาก — ถ้าพื้นที่ไม่พอ ลบได้ที่ ตั้งค่า → ธีม → ปรับแต่งเพิ่มเติม' : ''}</p>`;
+}
+async function sendPendingPhotosNow(){
+  if(!loadJSONsheetUrl()){ toast('ต้องเชื่อม Google Sheets ก่อน รูปถึงจะขึ้น Drive ได้'); return; }
+  const recs = TX.filter(t=>needsPhotoUpload(t) || !t.synced);
+  if(!recs.length){ toast('ไม่มีรูปค้าง — ขึ้น Drive ครบแล้ว'); renderStorageMeter(); return; }
+  toast(`กำลังส่ง ${recs.length} รายการขึ้น Drive… อย่าปิดแอป`, 6000);
+  for(const r of recs){ await pushOneToSheet(r); }
+  renderStorageMeter();
+  toast(TX.some(needsPhotoUpload) ? 'ส่งได้บางส่วน ระบบจะลองส่งที่เหลือเองอัตโนมัติ' : '✓ ส่งรูปขึ้น Drive ครบแล้ว และคืนพื้นที่ในเครื่องแล้ว');
 }
 
 /* ---------- Bulk status change (v6) ----------
@@ -3488,6 +3568,7 @@ function openSettingsPage(id){
   if(id==='install') renderInstallPanel();
   if(id==='iconpack') renderIconPackPicker();
   if(id==='goldprice'){ renderGoldSettings(); syncSharedSettings(); }
+  if(id==='backup') renderStorageMeter();
   if(id==='appicon') renderAppIconPicker();
   try{ history.pushState({settingsPage:id}, ''); }catch(e){}
   window.scrollTo(0,0);
@@ -3760,7 +3841,7 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || location.h
    - vars: ชุดสีของธีม (ทุกค่าตรวจความคมชัดตัวอักษรตามมาตรฐาน WCAG แล้ว อ่านง่ายทั้งบนมือถือและคอม)
    - art: ภาพประดับเงาตึกด้านล่าง (seed = ลายตึกต่างกัน, stars/moon = ดาว/พระจันทร์) หรือ null = ไม่มีภาพ
    ภาพเงาตึกวาดด้วยโค้ด (SVG) ทั้งหมด เป็นงานออกแบบของระบบนี้เอง ไม่ได้ใช้รูปจากแอปอื่น */
-const APP_VERSION = 'v10 (ต.ค. 2026)';
+const APP_VERSION = 'v11 (ต.ค. 2026)';
 const DEFAULT_THEME_PRESET = 'gold-skyline';
 const BASE_THEME_VARS = {
   plRevenue:'#5b9bd5', plCost:'#d29a3a', plProfit:'#5aa36b', plLoss:'#e0604c',
@@ -4588,12 +4669,11 @@ function buildPhotoBaseName(rec){
   return parts.join('-') || ('photo_' + Date.now());
 }
 async function uploadPhotoArray(photos, existingUrls, url, baseFileName, kindLabel){
-  if(existingUrls && existingUrls.length) return existingUrls;
-  if(!photos || !photos.length) return [];
-  const urls = [];
-  let i = 0;
-  for(const dataUrl of photos){
-    i++;
+  const urls = (existingUrls || []).slice();
+  if(!photos || photos.length <= urls.length) return urls;   // ขึ้นครบแล้ว (หรือรูปในเครื่องถูกลบไปแล้ว)
+  // v11: ต่อจากรูปที่ยังไม่ขึ้น — เดิมถ้าขึ้นไม่ครบ รูปที่เหลือจะไม่ถูกส่งซ้ำอีกเลย
+  for(let k = urls.length; k < photos.length; k++){
+    const dataUrl = photos[k], i = k + 1;
     const fileName = baseFileName ? `${baseFileName} (${kindLabel||'รูป'}${photos.length>1?i:''})` : undefined;
     try{
       const res = await fetch(url, {
@@ -4601,8 +4681,8 @@ async function uploadPhotoArray(photos, existingUrls, url, baseFileName, kindLab
         body: sheetPostBody({action:'uploadPhoto', base64:dataUrl, mimeType:'image/jpeg', fileName})
       });
       const j = await res.json();
-      if(j && j.url) urls.push(j.url);
-    }catch(e){ console.warn('photo upload failed', e); }
+      if(j && j.url) urls.push(j.url); else break; // ขึ้นไม่สำเร็จ หยุดไว้ก่อน รอบหน้าจะต่อจากรูปนี้ (ลำดับรูปไม่สลับ)
+    }catch(e){ console.warn('photo upload failed', e); break; }
   }
   return urls;
 }
@@ -4610,7 +4690,9 @@ async function uploadAllPhotosForRecord(rec, url){
   const baseName = buildPhotoBaseName(rec);
   const driveUrls = await uploadPhotoArray(rec.photos, rec.driveUrls, url, baseName, 'สินค้า');
   const slipDriveUrls = await uploadPhotoArray(rec.slipPhotos, rec.slipDriveUrls, url, baseName, 'สลิป');
-  rec.driveUrls = driveUrls; rec.slipDriveUrls = slipDriveUrls; saveTx();
+  rec.driveUrls = driveUrls; rec.slipDriveUrls = slipDriveUrls;
+  stripUploadedPhotos(rec);  // ขึ้น Drive ครบแล้ว → ลบไฟล์ภาพในเครื่อง คืนพื้นที่
+  saveTx();
   return {driveUrls, slipDriveUrls};
 }
 async function pushOneToSheet(rec){
@@ -4623,7 +4705,8 @@ async function pushOneToSheet(rec){
       editHistory: JSON.stringify(rec.editHistory||[])
     });
     await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: sheetPostBody(payload) });
-    rec.synced = true; saveTx();
+    rec.synced = !needsPhotoUpload(rec); // รูปยังขึ้นไม่ครบ = ยังไม่ถือว่าซิงก์เสร็จ ระบบจะลองส่งต่อเองทุก 45 วิ
+    saveTx();
   }catch(e){ console.warn('sync failed', e); }
 }
 async function syncAllToSheet(){
@@ -4768,7 +4851,7 @@ if(loadJSONsheetUrl()){ pullFromSheet(true); pullCostsFromSheet(true); fetchGold
 function retryUnsyncedPush(){
   const url = loadJSONsheetUrl();
   if(!url) return;
-  TX.filter(t=>!t.synced).forEach(rec=>pushOneToSheet(rec));
+  TX.filter(t=>!t.synced || needsPhotoUpload(t)).forEach(rec=>pushOneToSheet(rec));
 }
 setInterval(function(){
   if(!loadJSONsheetUrl()) return;
