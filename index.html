@@ -700,6 +700,8 @@
     .print-table th, .print-table td{border:1px solid #999; padding:5px 7px; text-align:left; color:#111;}
     .print-table th{background:#eee;}
     .print-table-compact{width:auto; min-width:260px;}
+    .print-h3{font-size:14px; margin:14px 0 6px; color:#111;}
+    .print-sign{display:flex; justify-content:space-between; gap:30px; margin-top:40px; font-size:12px; color:#111; line-height:2.2;}
   }
 </style>
 </head>
@@ -784,10 +786,11 @@
     <section class="view active" id="view-dashboard">
       <div class="topbar">
         <div>
-          <h1>ภาพรวมวันนี้</h1>
+          <h1>ภาพรวม</h1>
           <p id="todayDateLabel">—</p>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" onclick="printMonthClose()">🧾 ใบปิดยอดเดือน</button>
           <button class="btn" onclick="printReport('dashboard')">🖨 พิมพ์ / PDF</button>
           <button class="btn btn-primary" onclick="goTo('add')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -813,18 +816,22 @@
             <input type="date" id="rangeTo">
             <button class="btn btn-sm btn-primary" onclick="applyCustomRange()">ใช้ช่วงนี้</button>
           </div>
+          <div id="monthPickWrap" style="display:none; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;">
+            <span style="color:var(--muted); font-size:12.5px;">ดูเดือน</span>
+            <select id="monthPick" onchange="pickDashMonth(this.value)" style="width:auto; min-width:170px;"></select>
+          </div>
         </div>
       </div>
 
       <div class="stat-grid">
         <div class="stat"><div class="label">จำนวนรายการ (ช่วงที่เลือก)</div><div class="value" id="statRangeCount">0</div><div class="sub" id="statRangeSub">—</div></div>
         <div class="stat"><div class="label">ยอดรับซื้อ (ช่วงที่เลือก)</div><div class="value" id="statRangeSum">฿0</div><div class="sub">รวมทุกประเภท</div></div>
-        <div class="stat"><div class="label">รายการทั้งหมด</div><div class="value" id="statAllCount">0</div><div class="sub">ตั้งแต่เริ่มบันทึก</div></div>
-        <div class="stat"><div class="label">ยอดรวมทั้งหมด</div><div class="value" id="statAllSum">฿0</div><div class="sub">ทุกสาขา</div></div>
+        <div class="stat"><div class="label" id="statCmpLabel">เทียบเดือนที่แล้ว</div><div class="value" id="statCmpValue">—</div><div class="sub" id="statCmpSub">—</div></div>
+        <div class="stat"><div class="label">กำไรสุทธิ (ช่วงที่เลือก)</div><div class="value" id="statRangeNet">฿0</div><div class="sub" id="statRangeNetSub">—</div></div>
       </div>
 
       <div class="panel">
-        <h3>แยกตามประเภทสินค้า (ทั้งหมด)</h3>
+        <h3 id="typeBarsTitle">แยกตามประเภทสินค้า</h3>
         <p class="hint">สีและชื่อประเภทดึงมาจากหน้าตั้งค่าปัจจุบัน — รายการเก่าที่ใช้ชื่อประเภทที่ถูกลบไปแล้วจะรวมอยู่ในแถบ "อื่นๆ"</p>
         <div class="type-bars" id="typeBars"></div>
       </div>
@@ -1263,6 +1270,42 @@
             <input type="file" accept="application/json" id="templateFileInput">
           </label>
         </div>
+      </div>
+
+      <div class="panel" data-panel-id="metals">
+        <h3>ตารางแร่ธาตุเกี่ยวกับงานทองและโลหะมีค่า</h3>
+        <p class="hint">ข้อมูลอ้างอิงตามตารางที่ร้านใช้ (Reference Chart for Gold &amp; Precious Metals Work)</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>ธาตุ/โลหะ</th><th>สัญลักษณ์</th><th>เลขอะตอม</th><th>จุดหลอมเหลว (°C)</th><th>ลักษณะ/คุณสมบัติเด่น</th><th>การใช้งานในงานทอง</th></tr></thead>
+            <tbody>
+            <tr><td>1</td><td><b>ทองคำ</b></td><td>Au</td><td>79</td><td>1,064</td><td>สีเหลือง ไม่หมองง่าย นำไฟฟ้าดี</td><td>ใช้ทำเครื่องประดับ ทองคำแท่ง และเป็นโลหะหลักในงานทอง</td></tr>
+            <tr><td>2</td><td><b>เงิน</b></td><td>Ag</td><td>47</td><td>962</td><td>สีขาวเงา นำไฟฟ้าสูงมาก</td><td>ใช้ทำเครื่องประดับ โลหะผสม และงานตกแต่ง</td></tr>
+            <tr><td>3</td><td><b>ทองแดง</b></td><td>Cu</td><td>29</td><td>1,085</td><td>สีแดงอมส้ม แข็งแรง ดัดขึ้นรูปง่าย</td><td>ใช้ผสมทองเพื่อเพิ่มความแข็งและปรับสี</td></tr>
+            <tr><td>4</td><td><b>แพลทินัม</b></td><td>Pt</td><td>78</td><td>1,768</td><td>สีขาวเงิน ทนการกัดกร่อน หนัก</td><td>ใช้ทำเครื่องประดับพรีเมียมและงานฝังเพชร</td></tr>
+            <tr><td>5</td><td><b>แพลเลเดียม</b></td><td>Pd</td><td>46</td><td>1,555</td><td>สีขาว น้ำหนักเบากว่าแพลทินัม</td><td>ใช้ผสมทองขาวและงานเครื่องประดับ</td></tr>
+            <tr><td>6</td><td><b>โรเดียม</b></td><td>Rh</td><td>45</td><td>1,964</td><td>สีขาวเงามาก แข็ง ทนหมอง</td><td>ใช้ชุบผิวทองขาวและเครื่องประดับให้เงางาม</td></tr>
+            <tr><td>7</td><td><b>นิกเกิล</b></td><td>Ni</td><td>28</td><td>1,455</td><td>สีเงิน แข็ง ทนสึกหรอ</td><td>ใช้เป็นส่วนผสมในโลหะและงานชุบบางประเภท</td></tr>
+            <tr><td>8</td><td><b>สังกะสี</b></td><td>Zn</td><td>30</td><td>420</td><td>สีเทาเงิน หลอมง่าย</td><td>ใช้เป็นส่วนผสมในโลหะผสมและช่วยปรับคุณสมบัติการหลอม</td></tr>
+            <tr><td>9</td><td><b>ดีบุก</b></td><td>Sn</td><td>50</td><td>232</td><td>สีเงินอ่อน หลอมง่าย</td><td>ใช้ในงานบัดกรีและโลหะผสมบางชนิด</td></tr>
+            <tr><td>10</td><td><b>อิริเดียม</b></td><td>Ir</td><td>77</td><td>2,446</td><td>แข็งมาก ทนความร้อนและการกัดกร่อนสูง</td><td>ใช้ผสมเพิ่มความแข็งแรงในโลหะมีค่าบางชนิด</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin:18px 0 6px; font-weight:700; color:var(--gold-bright);">หมายเหตุสำคัญ</p>
+        <ul class="steps" style="padding-left:20px;">
+          <li>ทองบริสุทธิ์ 24K เนื้อนิ่ม จึงมักผสมโลหะอื่นเพื่อเพิ่มความแข็งแรง</li>
+          <li>ทองขาวมักเกี่ยวข้องกับ Palladium หรือ Nickel และนิยมชุบ Rhodium</li>
+          <li>ทองแดงและเงิน เป็นโลหะผสมที่พบได้บ่อยในทองรูปพรรณ</li>
+          <li>การหลอมและการวิเคราะห์เปอร์เซ็นต์ทอง ควรใช้เครื่องมือที่แม่นยำ</li>
+        </ul>
+        <p style="margin:18px 0 6px; font-weight:700; color:var(--gold-bright);">ระบบใช้ข้อมูลนี้คำนวณอย่างไร</p>
+        <ul class="steps" style="padding-left:20px;">
+          <li><b>ทองคำ (Au)</b> และ <b>นาก</b> — คำนวณราคาแนะนำและมูลค่าทองในมือจากราคาสมาคมค้าทองคำ ตามความบริสุทธิ์ที่เลือก (99.99% / 96.5% / 90% / 80% / 50% / 40%)</li>
+          <li><b>ทองแดง ทองเหลือง ทองขาว แพลทินัม แพลเลเดียม</b> — แม้ชื่อมีคำว่า "ทอง" แต่ระบบ<b>ไม่</b>คิดเป็นทองคำ และไม่ใช้ราคาสมาคม ให้กรอกราคาที่รับซื้อจริงเอง</li>
+          <li>ทองขาวเป็นทองคำผสม Pd/Ni — เปอร์เซ็นต์ทองคำแตกต่างกันมาก ควรตรวจด้วยเครื่องวัดก่อนตั้งราคา</li>
+          <li>หน่วยน้ำหนัก: 1 บาททองรูปพรรณ = 15.16 กรัม · 1 บาททองคำแท่ง = 15.244 กรัม · 1 กะรัต = 0.2 กรัม</li>
+        </ul>
       </div>
 
       <div class="panel" data-panel-id="goldprice">
@@ -2059,7 +2102,9 @@ function slipButtonHtml(t){
 }
 
 /* ---------- Dashboard date range ---------- */
-let dashRange = {mode:'today', from:null, to:null};
+/* v12: เปิดมาเป็น "เดือนนี้" — ขึ้นเดือนใหม่ตัวเลขเริ่มนับใหม่เอง (ข้อมูลเดือนเก่าไม่ถูกลบ เลือกดูย้อนหลังได้)
+   ym = null แปลว่า "เดือนปัจจุบัน" เสมอ (เปิดแอปค้างข้ามเดือนก็เปลี่ยนเดือนเอง) / ym = 'YYYY-MM' = เดือนที่เลือกดูย้อนหลัง */
+let dashRange = {mode:'month', from:null, to:null, ym:null};
 /* บั๊กเดิม: toISOString() ให้วันที่ตามเวลา UTC — เวลาไทย (UTC+7) ช่วง 00:00–06:59 จะได้ "เมื่อวาน"
    และวันที่ 1 ของเดือนกลายเป็นวันสุดท้ายของเดือนก่อน ฟังก์ชันนี้ใช้วันที่ตามเวลาเครื่องจริงแทน */
 function localIso(d){
@@ -2075,13 +2120,60 @@ function computeRangeDates(){
     return {from:localIso(d), to:today};
   }
   if(dashRange.mode==='month'){
-    const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {from:localIso(d), to:today};
+    const ym = dashRange.ym || today.slice(0,7);
+    return monthBounds(ym);
   }
   if(dashRange.mode==='all') return {from:null, to:null};
   if(dashRange.mode==='custom') return {from:dashRange.from||today, to:dashRange.to||today};
   return {from:today, to:today};
+}
+const TH_MONTH_NAMES = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function isoToDate(iso){ const [y,m,d] = String(iso).split('-').map(Number); return new Date(y, m-1, d); }
+function addDaysIso(iso, n){ const d = isoToDate(iso); d.setDate(d.getDate()+n); return localIso(d); }
+function daysBetween(from, to){ return Math.round((isoToDate(to) - isoToDate(from)) / 86400000) + 1; }
+function shiftYm(ym, delta){ const [y,m] = ym.split('-').map(Number); const d = new Date(y, m-1+delta, 1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function monthLabelTH(ym){ const [y,m] = ym.split('-').map(Number); return TH_MONTH_NAMES[m-1] + ' ' + (y+543); }
+// ขอบเขตของเดือน: เดือนปัจจุบันนับถึงวันนี้ เดือนที่ผ่านมาแล้วนับถึงวันสุดท้ายของเดือน
+function monthBounds(ym){
+  const [y,m] = ym.split('-').map(Number);
+  const from = `${ym}-01`, last = localIso(new Date(y, m, 0)), today = isoToday();
+  return {from, to: (today >= from && today < last) ? today : last, fullTo: last};
+}
+// ช่วงก่อนหน้าที่ใช้เทียบ: เดือน → ช่วงวันเดียวกันของเดือนก่อน (1–2 พ.ย. เทียบ 1–2 ต.ค.) / ช่วงอื่น → ช่วงยาวเท่ากันก่อนหน้า
+function previousRange(from, to){
+  if(!from || !to) return null;
+  if(dashRange.mode==='month'){
+    const ym = from.slice(0,7), prevYm = shiftYm(ym, -1), pb = monthBounds(prevYm);
+    const dayN = Number(to.slice(8,10)), prevTo = `${prevYm}-${String(Math.min(dayN, Number(pb.fullTo.slice(8,10)))).padStart(2,'0')}`;
+    const partial = to < monthBounds(ym).fullTo;
+    return {from: pb.from, to: partial ? prevTo : pb.fullTo,
+      label: partial ? `ช่วงเดียวกันของ${monthLabelTH(prevYm)}` : monthLabelTH(prevYm), short: partial ? 'ช่วงเดียวกันเดือนที่แล้ว' : 'เดือนที่แล้ว'};
+  }
+  const n = daysBetween(from, to), pTo = addDaysIso(from, -1), pFrom = addDaysIso(from, -n);
+  const short = dashRange.mode==='today' ? 'เมื่อวาน' : dashRange.mode==='7d' ? '7 วันก่อนหน้า' : 'ช่วงก่อนหน้า';
+  return {from:pFrom, to:pTo, label: rangeLabel(pFrom, pTo), short};
+}
+function sumPurchase(from, to){ return TX.filter(t=> (!from || t.date>=from) && (!to || t.date<=to)).reduce((s,t)=>s+Number(t.price||0),0); }
+function pctChangeHTML(cur, prev){
+  if(!prev) return cur ? '<span style="color:var(--pl-profit);">ใหม่</span>' : '—';
+  const pct = Math.round((cur - prev) / prev * 1000) / 10;
+  if(pct === 0) return '0%';
+  return pct > 0 ? `<span style="color:var(--pl-profit);">▲ ${pct.toLocaleString('th-TH')}%</span>` : `<span style="color:var(--pl-loss);">▼ ${Math.abs(pct).toLocaleString('th-TH')}%</span>`;
+}
+// รายชื่อเดือนให้เลือกดูย้อนหลัง: ตั้งแต่เดือนแรกที่มีรายการ จนถึงเดือนปัจจุบัน
+function renderMonthPick(){
+  const sel = document.getElementById('monthPick'); if(!sel) return;
+  const cur = isoToday().slice(0,7);
+  let first = cur;
+  TX.forEach(t=>{ const d = toPlainDateStr(t.date); if(/^\d{4}-\d{2}/.test(d) && d.slice(0,7) < first) first = d.slice(0,7); });
+  const opts = []; for(let ym = cur; ym >= first && opts.length < 120; ym = shiftYm(ym, -1)) opts.push(ym);
+  const chosen = dashRange.ym || cur;
+  sel.innerHTML = opts.map(ym=>`<option value="${ym}" ${ym===chosen?'selected':''}>${monthLabelTH(ym)}${ym===cur?' (เดือนนี้)':''}</option>`).join('');
+}
+function pickDashMonth(ym){
+  dashRange.mode = 'month';
+  dashRange.ym = (ym === isoToday().slice(0,7)) ? null : ym;
+  renderDashboard();
 }
 function rangeLabel(from,to){
   if(!from && !to) return 'ทุกช่วงเวลา';
@@ -2091,6 +2183,7 @@ function rangeLabel(from,to){
 document.querySelectorAll('#rangeOpts .opt').forEach(o=>{
   o.addEventListener('click', ()=>{
     dashRange.mode = o.dataset.mode;
+    if(dashRange.mode==='month') dashRange.ym = null; // กด "เดือนนี้" = กลับมาเดือนปัจจุบันเสมอ
     document.getElementById('customRangeInputs').style.display = dashRange.mode==='custom' ? 'flex' : 'none';
     document.querySelectorAll('#rangeOpts .opt').forEach(x=>x.classList.remove('sel'));
     o.classList.add('sel');
@@ -2108,16 +2201,37 @@ function applyCustomRange(){
 /* ---------- Dashboard ---------- */
 function renderDashboard(){
   renderGoldCard();
-  document.querySelectorAll('#rangeOpts .opt').forEach(o=> o.classList.toggle('sel', o.dataset.mode===dashRange.mode));
+  const viewingPastMonth = dashRange.mode==='month' && dashRange.ym && dashRange.ym !== isoToday().slice(0,7);
+  document.querySelectorAll('#rangeOpts .opt').forEach(o=> o.classList.toggle('sel', o.dataset.mode===dashRange.mode && !viewingPastMonth));
+  document.getElementById('monthPickWrap').style.display = dashRange.mode==='month' ? 'flex' : 'none';
+  if(dashRange.mode==='month') renderMonthPick();
   const {from, to} = computeRangeDates();
-  document.getElementById('todayDateLabel').textContent = 'แสดงข้อมูลของ: ' + rangeLabel(from, to);
+  const periodName = dashRange.mode==='month' ? monthLabelTH((dashRange.ym || isoToday().slice(0,7))) : rangeLabel(from, to);
+  document.getElementById('todayDateLabel').textContent = 'แสดงข้อมูลของ: ' + periodName + (dashRange.mode==='month' && from!==to ? ` (${rangeLabel(from, to)})` : '');
+  const tbt = document.getElementById('typeBarsTitle'); if(tbt) tbt.textContent = 'แยกตามประเภทสินค้า — ' + periodName;
 
   const filtered = TX.filter(t=> (!from || t.date>=from) && (!to || t.date<=to));
   document.getElementById('statRangeCount').textContent = filtered.length;
   document.getElementById('statRangeSub').textContent = rangeLabel(from, to);
   document.getElementById('statRangeSum').textContent = fmtMoney(filtered.reduce((s,t)=>s+Number(t.price||0),0));
-  document.getElementById('statAllCount').textContent = TX.length;
-  document.getElementById('statAllSum').textContent = fmtMoney(TX.reduce((s,t)=>s+Number(t.price||0),0));
+  // การ์ดเทียบช่วงก่อนหน้า (แทนการ์ด "ทั้งหมดตั้งแต่เริ่มบันทึก" เดิม ที่ทำให้ดูเหมือนยอดไม่ตัดเดือน)
+  const curSum = filtered.reduce((s,t)=>s+Number(t.price||0),0);
+  const prev = previousRange(from, to);
+  if(prev){
+    const prevSum = sumPurchase(prev.from, prev.to);
+    document.getElementById('statCmpLabel').textContent = 'ยอดรับซื้อเทียบ' + prev.short;
+    document.getElementById('statCmpValue').innerHTML = pctChangeHTML(curSum, prevSum);
+    document.getElementById('statCmpSub').textContent = prev.label + ' ' + fmtMoney(prevSum);
+  } else {
+    document.getElementById('statCmpLabel').textContent = 'ยอดรับซื้อเทียบช่วงก่อนหน้า';
+    document.getElementById('statCmpValue').textContent = '—';
+    document.getElementById('statCmpSub').textContent = 'เลือกช่วงเวลาเพื่อเทียบ';
+  }
+  const pl = computePL(from || '0000-01-01', to || '9999-12-31');
+  const netEl = document.getElementById('statRangeNet');
+  netEl.textContent = pl.net < 0 ? 'ขาดทุน ' + fmtMoney(Math.abs(pl.net)) : fmtMoney(pl.net);
+  netEl.style.color = pl.net < 0 ? 'var(--pl-loss)' : 'var(--pl-profit)';
+  document.getElementById('statRangeNetSub').textContent = LABELS.cost + ' ' + fmtMoney(pl.sales) + ' − รับซื้อ';
 
   // totals by current type config (within selected range), plus a catch-all "อื่นๆ" for legacy/unmatched type strings
   const totals = TYPES.map(t=>({name:t.name, color:t.color, sum:0}));
@@ -2627,7 +2741,15 @@ let GOLD_CACHE = loadJSON(LS_GOLD, null);            // {data, receivedAt}
 let GOLD_SETTINGS = Object.assign({marginType:'perBaht', marginValue:0, manualActive:false, manual:null}, loadJSON(LS_GOLD_SETTINGS, {}));
 let goldLastError = '';
 function purityLabel(id){ const o = PURITY_OPTIONS.find(p=>p.id===id); return o ? o.label : (id ? id + '%' : ''); }
-function isGoldType(name){ return typeIconKey(name) === 'gold' || /นาก/.test(String(name||'')); }
+/* v12 (ตามตารางโลหะของร้าน): "ทองแดง (Cu)", "ทองเหลือง" และ "ทองขาว" (ผสม Pd/Ni ชุบ Rh) มีคำว่า "ทอง" แต่ไม่ใช่ทองคำ
+   ใช้ราคาสมาคมไม่ได้ — เดิมระบบนับเป็นทองและคิดมูลค่าแบบ 96.5% ทำให้มูลค่าทองในมือสูงเกินจริง
+   และประเภทอย่าง "สร้อยทอง" "แหวนทอง" เดิมไม่ถูกนับเป็นทอง (เพราะไอคอนเป็นสร้อย/แหวน) — แก้ให้ดูจากชื่อโดยตรง */
+const NON_GOLD_METAL_RE = /ทองแดง|ทองเหลือง|ทองขาว|ทองคำขาว|white\s*gold|แพลทินัม|แพลตินัม|แพลทินั่ม|แพลเลเดียม|โรเดียม|platinum|palladium|rhodium|copper|brass/i;
+function isGoldType(name){
+  const n = String(name||'');
+  if(NON_GOLD_METAL_RE.test(n) || /ตั๋ว|จำนำ/.test(n)) return false;
+  return /ทอง|นาก|gold/i.test(n);
+}
 function defaultPurityFor(name){ return /นาก/.test(String(name||'')) ? '40' : '96.5'; }
 function manualGoldData(){
   const m = GOLD_SETTINGS.manual; if(!m || !m.ornBuy) return null;
@@ -3443,6 +3565,68 @@ function printReport(scope){
   window.print();
 }
 
+/* v12: ใบปิดยอดประจำเดือน — สรุปของเดือนที่เลือกบนแดชบอร์ด (ไม่ได้เลือกเดือน = เดือนนี้)
+   ไม่ลบ/ไม่แก้ข้อมูลใดๆ แค่สรุปเพื่อพิมพ์หรือบันทึกเป็น PDF เก็บไว้ */
+function printMonthClose(){
+  const ym = (dashRange.mode==='month' && dashRange.ym) ? dashRange.ym : isoToday().slice(0,7);
+  const b = monthBounds(ym), from = b.from, to = b.fullTo;
+  const rows = TX.filter(t=>t.date>=from && t.date<=to);
+  const groups = groupTx(rows);
+  const pl = computePL(from, to);
+  const prevYm = shiftYm(ym, -1), pb = monthBounds(prevYm), ppl = computePL(pb.from, pb.fullTo);
+  const isOpen = isoToday() < to;
+  const money = v => fmtMoney(Math.round(v*100)/100);
+  const netTxt = v => v < 0 ? 'ขาดทุน ' + money(Math.abs(v)) : money(v);
+  const tally = keyFn => {
+    const m = new Map();
+    rows.forEach(t=>{ const k = keyFn(t) || 'ไม่ระบุ'; const o = m.get(k) || {n:0, sum:0}; o.n++; o.sum += Number(t.price||0); m.set(k, o); });
+    return [...m.entries()].sort((a,b)=>b[1].sum-a[1].sum);
+  };
+  const tallyTable = (title, head, list) => `<h3 class="print-h3">${title}</h3>
+    <table class="print-table"><thead><tr><th>${head}</th><th>จำนวนรายการ</th><th>ยอดรับซื้อ</th><th>สัดส่วน</th></tr></thead>
+    <tbody>${list.map(([k,o])=>`<tr><td>${k}</td><td>${o.n}</td><td>${money(o.sum)}</td><td>${pl.purchase ? Math.round(o.sum/pl.purchase*1000)/10 + '%' : '—'}</td></tr>`).join('') || '<tr><td colspan="4">ไม่มีรายการ</td></tr>'}</tbody></table>`;
+  // รายวัน: รับซื้อ / ขาย-หลอม / กำไร
+  const days = [];
+  for(let d = from; d <= to; d = addDaysIso(d, 1)){
+    const p = sumPurchase(d, d), c = Number(DAILY_COSTS[d])||0, n = rows.filter(t=>t.date===d).length;
+    if(p || c || n) days.push({d, n, p, c});
+  }
+  // ของที่ยังอยู่ในร้าน (ยังไม่ ขาย/หลอม) ที่รับซื้อมาถึงสิ้นเดือนนี้ — ยกไปเดือนถัดไป ไม่ต้องล้าง
+  const remain = TX.filter(t=>t.date<=to && !/ขาย|หลอม/.test(t.status||''));
+  const remainSum = remain.reduce((s,t)=>s+Number(t.price||0),0);
+  let goldGrams = 0;
+  remain.filter(t=>isGoldType(t.type)).forEach(t=>{ const w = parseWeightString(t.weight); const g = w ? weightToGrams(w.val, w.unit, t.purity || defaultPurityFor(t.type)) : null; if(g) goldGrams += g; });
+  const html = printReportHeader('ใบปิดยอดประจำเดือน', monthLabelTH(ym) + (isOpen ? ' (ยังไม่สิ้นเดือน — ยอดถึง ' + fmtDate(isoToday()) + ')' : '')) + `
+    <h3 class="print-h3">สรุปยอด</h3>
+    <table class="print-table">
+      <thead><tr><th></th><th>${monthLabelTH(ym)}</th><th>${monthLabelTH(prevYm)}</th><th>เปลี่ยนแปลง</th></tr></thead>
+      <tbody>
+        <tr><td>จำนวนลูกค้า (ครั้ง)</td><td><b>${groups.length}</b></td><td>${groupTx(TX.filter(t=>t.date>=pb.from && t.date<=pb.fullTo)).length}</td><td></td></tr>
+        <tr><td>จำนวนรายการสินค้า</td><td><b>${rows.length}</b></td><td>${TX.filter(t=>t.date>=pb.from && t.date<=pb.fullTo).length}</td><td></td></tr>
+        <tr><td>ยอดรับซื้อ</td><td><b>${money(pl.purchase)}</b></td><td>${money(ppl.purchase)}</td><td>${pctChangeHTML(pl.purchase, ppl.purchase).replace(/<[^>]+>/g,'')}</td></tr>
+        <tr><td>${LABELS.cost}</td><td><b>${money(pl.sales)}</b></td><td>${money(ppl.sales)}</td><td>${pctChangeHTML(pl.sales, ppl.sales).replace(/<[^>]+>/g,'')}</td></tr>
+        <tr><td>กำไรสุทธิ (${LABELS.cost} − รับซื้อ)</td><td><b>${netTxt(pl.net)}</b></td><td>${netTxt(ppl.net)}</td><td></td></tr>
+      </tbody>
+    </table>
+    ${tallyTable('แยกตามประเภทสินค้า', 'ประเภท', tally(t=>t.type))}
+    ${tallyTable('แยกตามสาขา', 'สาขา', tally(t=>t.branch))}
+    ${tallyTable('แยกตามวิธีจ่ายเงิน', 'วิธีจ่าย', tally(t=>t.paymentMethod))}
+    ${tallyTable('สถานะของสินค้าที่รับซื้อเดือนนี้ (ณ วันที่พิมพ์)', 'สถานะ', tally(t=>t.status))}
+    <h3 class="print-h3">ยอดรายวัน</h3>
+    <table class="print-table"><thead><tr><th>วันที่</th><th>รายการ</th><th>ยอดรับซื้อ</th><th>${LABELS.cost}</th><th>กำไรสุทธิ</th></tr></thead>
+    <tbody>${days.map(x=>`<tr><td>${fmtDate(x.d)}</td><td>${x.n}</td><td>${money(x.p)}</td><td>${money(x.c)}</td><td>${netTxt(x.c - x.p)}</td></tr>`).join('') || '<tr><td colspan="5">ไม่มีรายการ</td></tr>'}</tbody></table>
+    <h3 class="print-h3">ของคงเหลือยกไปเดือนถัดไป (ยังไม่ขาย/หลอม ณ วันที่พิมพ์)</h3>
+    <table class="print-table print-table-compact">
+      <tr><td>จำนวนรายการ</td><td><b>${remain.length}</b></td></tr>
+      <tr><td>ทุนที่รับซื้อมา</td><td><b>${money(remainSum)}</b></td></tr>
+      ${goldGrams ? `<tr><td>น้ำหนักทองรวม (โดยประมาณ)</td><td><b>${(Math.round(goldGrams*100)/100).toLocaleString('th-TH')} กรัม ≈ ${(Math.round(goldGrams/GRAMS_PER_BAHT_ORN*100)/100).toLocaleString('th-TH')} บาท</b></td></tr>` : ''}
+    </table>
+    <p style="font-size:11px; color:#444;">ใบนี้เป็นสรุปเท่านั้น ข้อมูลทุกรายการยังเก็บไว้ในระบบครบ เลือกดูย้อนหลังได้ที่แดชบอร์ด → เดือนนี้ → ดูเดือน</p>
+    <div class="print-sign"><div>ผู้จัดทำ ...................................................<br>วันที่ ........./........./.........</div><div>ผู้ตรวจสอบ ...................................................<br>วันที่ ........./........./.........</div></div>`;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
 
 /* ---------- Settings: general ---------- */
 function setSyncBadge(state, text){
@@ -3499,6 +3683,7 @@ const S_ICONS = {
   phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/>',
   goldcoin:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 9.5v5"/>',
   apps:'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  flask:'<path d="M9.5 3h5"/><path d="M10.5 3v6L5 19a1.5 1.5 0 0 0 1.3 2.2h11.4A1.5 1.5 0 0 0 19 19l-5.5-10V3"/><path d="M7.5 15h9"/>',
   gem:'<path d="M6.5 4h11L21 9.5 12 20.5 3 9.5z"/><path d="M3 9.5h18"/><path d="m9.5 4-1.5 5.5 4 11 4-11L14.5 4"/>'
 };
 function sIcon(name){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${S_ICONS[name]||''}</svg>`; }
@@ -3516,6 +3701,7 @@ const SETTINGS_MENU = [
     {id:'types', label:'ประเภทสินค้า', icon:'tag', color:'#c9971c', sub:()=>TYPES.length + ' ประเภท'},
     {id:'statuses', label:'สถานะ', icon:'check', color:'#2e9d6a', sub:()=>STATUSES.map(s=>s.name).join(' · ')},
     {id:'titles', label:'คำนำหน้าชื่อลูกค้า', icon:'user', color:'#3b82c4', sub:()=>TITLES.join(' · ')},
+    {id:'metals', label:'ตารางโลหะอ้างอิง', icon:'flask', color:'#9a7b2f', sub:()=>'ทอง เงิน ทองแดง แพลทินัม ฯลฯ'},
     {id:'weights', label:'หน่วยน้ำหนัก', icon:'scale', color:'#8a6d3b', sub:()=>WEIGHT_UNITS.join(' · ')},
     {id:'branches', label:'สาขา', icon:'pin', color:'#d0533f', sub:()=>BRANCHES.length + ' สาขา'},
     {id:'template', label:'แม่แบบการตั้งค่า (ส่งต่อแอดมิน)', icon:'copy', color:'#607d8b'}
@@ -3624,6 +3810,7 @@ function typeIconKey(name){
   if(/พระ|เครื่องราง|ตะกรุด/.test(n)) return 'amulet';
   if(/สร้อย|จี้/.test(n)) return 'necklace';
   if(/แหวน/.test(n)) return 'ring';
+  if(NON_GOLD_METAL_RE.test(n)) return /ทองแดง|ทองเหลือง|copper|brass/i.test(n) ? 'tag' : 'silver';
   if(/ทอง/.test(n)) return 'gold';
   if(/เงิน|เหรียญ/.test(n)) return 'silver';
   if(/มือถือ|โทรศัพท์|ไอแพด|แท็บเล็ต/.test(n)) return 'phone';
@@ -3841,7 +4028,7 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || location.h
    - vars: ชุดสีของธีม (ทุกค่าตรวจความคมชัดตัวอักษรตามมาตรฐาน WCAG แล้ว อ่านง่ายทั้งบนมือถือและคอม)
    - art: ภาพประดับเงาตึกด้านล่าง (seed = ลายตึกต่างกัน, stars/moon = ดาว/พระจันทร์) หรือ null = ไม่มีภาพ
    ภาพเงาตึกวาดด้วยโค้ด (SVG) ทั้งหมด เป็นงานออกแบบของระบบนี้เอง ไม่ได้ใช้รูปจากแอปอื่น */
-const APP_VERSION = 'v11 (ต.ค. 2026)';
+const APP_VERSION = 'v12 (พ.ย. 2026)';
 const DEFAULT_THEME_PRESET = 'gold-skyline';
 const BASE_THEME_VARS = {
   plRevenue:'#5b9bd5', plCost:'#d29a3a', plProfit:'#5aa36b', plLoss:'#e0604c',
